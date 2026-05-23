@@ -785,6 +785,18 @@ input[type="text"]:focus {
   border-color: var(--text);
 }
 
+/* ---------- Update banner ---------- */
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, var(--green), #3c7a52);
+  color: #0e1a12;
+  font-weight: 600;
+}
+
 /* ---------- Misc ---------- */
 .empty {
   color: var(--muted);
