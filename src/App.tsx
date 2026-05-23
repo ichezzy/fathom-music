@@ -5,6 +5,7 @@ import { MusicSection } from "./components/MusicSection";
 import { AmbientSection } from "./components/AmbientSection";
 import { SoundboardSection } from "./components/SoundboardSection";
 import { NowPlayingBar } from "./components/NowPlayingBar";
+import { UpdateBanner } from "./components/UpdateBanner";
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -25,6 +26,7 @@ export function App() {
 
   return (
     <div className="app">
+      <UpdateBanner />
       <TopBar />
 
       {ready ? (
