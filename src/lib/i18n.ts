@@ -100,6 +100,11 @@ const de: Dict = {
   "sfx.playback.and": "und",
   "update.ready": "Update {version} ist bereit.",
   "update.restart": "Neustarten & aktualisieren",
+  "now.nothing": "Nichts ausgewählt",
+  "now.pickPlaylist": "Wähle eine Playlist",
+  "now.prev": "Vorheriger Track",
+  "now.next": "Nächster Track",
+  "now.position": "Position",
 };
 
 const en: Dict = {
@@ -193,6 +198,11 @@ const en: Dict = {
   "sfx.playback.and": "and",
   "update.ready": "Update {version} is ready.",
   "update.restart": "Restart & update",
+  "now.nothing": "Nothing selected",
+  "now.pickPlaylist": "Pick a playlist",
+  "now.prev": "Previous track",
+  "now.next": "Next track",
+  "now.position": "Position",
 };
 
 const dicts: Record<Language, Dict> = { de, en };
