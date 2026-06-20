@@ -1,7 +1,9 @@
 import { useStore } from "../store/store";
 import { formatTime } from "../lib/format";
+import { useT } from "../lib/i18n";
 
 export function NowPlayingBar() {
+  const t = useT();
   const status = useStore((s) => s.status);
   const track = useStore((s) =>
     status.trackId ? s.tracks[status.trackId] : null,
@@ -25,10 +27,10 @@ export function NowPlayingBar() {
         </span>
         <div className="nowplaying__text">
           <span className="nowplaying__title">
-            {track ? track.title : "Nichts ausgewählt"}
+            {track ? track.title : t("now.nothing")}
           </span>
           <span className="nowplaying__sub">
-            {playlist ? playlist.name : "Wähle eine Playlist"}
+            {playlist ? playlist.name : t("now.pickPlaylist")}
           </span>
         </div>
       </div>
@@ -38,7 +40,7 @@ export function NowPlayingBar() {
           className="icon-btn"
           onClick={previous}
           disabled={!hasTrack}
-          aria-label="Vorheriger Track"
+          aria-label={t("now.prev")}
         >
           ⏮
         </button>
@@ -54,7 +56,7 @@ export function NowPlayingBar() {
           className="icon-btn"
           onClick={next}
           disabled={!hasTrack}
-          aria-label="Nächster Track"
+          aria-label={t("now.next")}
         >
           ⏭
         </button>
@@ -69,7 +71,7 @@ export function NowPlayingBar() {
           value={Math.floor(status.currentSec)}
           disabled={!hasTrack || duration <= 0}
           onChange={(e) => seek(Number(e.target.value))}
-          aria-label="Position"
+          aria-label={t("now.position")}
         />
         <span className="nowplaying__time">{formatTime(duration)}</span>
       </div>

@@ -4,6 +4,9 @@ import { getFileBlob } from "../lib/db";
  * Low-latency one-shot player for soundboard effects. Files are decoded once
  * into AudioBuffers and replayed through the Web Audio graph, so repeated /
  * overlapping triggers stay tight.
+ *
+ * It can also re-fire an effect on a fixed or random interval (e.g. a wolf
+ * howl every 30–60s) until stopped.
  */
 export class SoundboardEngine {
   private ctx: AudioContext | null = null;
@@ -11,6 +14,11 @@ export class SoundboardEngine {
   private buffers = new Map<string, AudioBuffer>();
   private pending = new Map<string, Promise<AudioBuffer | null>>();
   private outputScale = 1;
+
+  /** Active interval loops, keyed by effect id. */
+  private loops = new Map<string, number>();
+
+  constructor(private onLoopingChange: (ids: string[]) => void = () => {}) {}
 
   private context(): AudioContext {
     if (!this.ctx) {
@@ -70,6 +78,53 @@ export class SoundboardEngine {
     };
   }
 
+  loopingIds(): string[] {
+    return [...this.loops.keys()];
+  }
+
+  isLooping(effectId: string): boolean {
+    return this.loops.has(effectId);
+  }
+
+  /**
+   * Start re-firing `fileId` on an interval until `stopLoop(effectId)`.
+   * Fires once immediately, then waits a fixed (min === max) or random delay
+   * in [minSeconds, maxSeconds] between shots.
+   */
+  startLoop(
+    effectId: string,
+    fileId: string,
+    volume: number,
+    minSeconds: number,
+    maxSeconds: number,
+  ): void {
+    this.stopLoop(effectId);
+    const lo = Math.max(0.1, Math.min(minSeconds, maxSeconds));
+    const hi = Math.max(lo, Math.max(minSeconds, maxSeconds));
+    const tick = () => {
+      void this.play(fileId, volume);
+      const delay = (lo + Math.random() * (hi - lo)) * 1000;
+      this.loops.set(effectId, window.setTimeout(tick, delay));
+      this.onLoopingChange(this.loopingIds());
+    };
+    tick();
+  }
+
+  stopLoop(effectId: string): void {
+    const timer = this.loops.get(effectId);
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+      this.loops.delete(effectId);
+      this.onLoopingChange(this.loopingIds());
+    }
+  }
+
+  stopAllLoops(): void {
+    for (const timer of this.loops.values()) window.clearTimeout(timer);
+    this.loops.clear();
+    this.onLoopingChange(this.loopingIds());
+  }
+
   /** Drop a decoded buffer (e.g. when its file is deleted). */
   forget(fileId: string): void {
     this.buffers.delete(fileId);
@@ -77,6 +132,7 @@ export class SoundboardEngine {
   }
 
   destroy(): void {
+    this.stopAllLoops();
     void this.ctx?.close();
     this.ctx = null;
     this.master = null;
