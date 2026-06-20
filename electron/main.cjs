@@ -12,6 +12,12 @@ app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 const isDev = !app.isPackaged;
 const DEV_SERVER_URL = "http://127.0.0.1:5173";
 
+// Serve the packaged app from a FIXED loopback port. IndexedDB (where all
+// playlists, settings and uploaded files live) is keyed by origin, and the
+// origin includes the port — so a changing port silently wipes user data on
+// every launch. A constant port keeps the origin stable across updates.
+const APP_PORT = 47615;
+
 let mainWindow = null;
 let staticServer = null;
 
@@ -20,11 +26,12 @@ async function loadRenderer() {
     await mainWindow.loadURL(DEV_SERVER_URL);
     return;
   }
-  // Serve the build over http so the renderer has a real origin (YouTube
-  // embeds need it). Fall back to file:// if the server can't start.
+  // Serve the build over http on a fixed port so the renderer has a real,
+  // stable origin: YouTube embeds need a real origin, and IndexedDB needs a
+  // stable one. Fall back to file:// only if the port can't be bound.
   const distDir = path.join(__dirname, "..", "dist");
   try {
-    staticServer = await startStaticServer(distDir);
+    staticServer = await startStaticServer(distDir, { port: APP_PORT });
     await mainWindow.loadURL(staticServer.url);
   } catch (err) {
     console.error("[static-server] falling back to file://:", err?.message);
@@ -96,14 +103,27 @@ ipcMain.handle("update:install", () => {
   if (!isDev) autoUpdater.quitAndInstall();
 });
 
-app.whenReady().then(() => {
-  createWindow();
-  setupAutoUpdates();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+// A single instance keeps one owner of the fixed port and the user's data.
+// A second launch just focuses the existing window.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
   });
-});
+
+  app.whenReady().then(() => {
+    createWindow();
+    setupAutoUpdates();
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  });
+}
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

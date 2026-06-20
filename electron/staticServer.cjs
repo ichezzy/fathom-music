@@ -28,9 +28,11 @@ const MIME = {
  * API's postMessage handshake works in the packaged app. Binds to loopback
  * only, serves GET/HEAD, and refuses any path that escapes `root`.
  *
- * Resolves to `{ url, close }`. Port 0 lets the OS pick a free port.
+ * Resolves to `{ url, close }`. Pass `{ port }` for a fixed port (needed so
+ * the renderer origin — and thus IndexedDB — stays stable across launches);
+ * port 0 lets the OS pick a free one.
  */
-function startStaticServer(root) {
+function startStaticServer(root, { port = 0 } = {}) {
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
       if (req.method !== "GET" && req.method !== "HEAD") {
@@ -77,11 +79,12 @@ function startStaticServer(root) {
     });
 
     server.on("error", reject);
-    server.listen(0, "127.0.0.1", () => {
+    server.listen(port, "127.0.0.1", () => {
       const address = server.address();
-      const port = typeof address === "object" && address ? address.port : 0;
+      const boundPort =
+        typeof address === "object" && address ? address.port : port;
       resolve({
-        url: `http://127.0.0.1:${port}/`,
+        url: `http://127.0.0.1:${boundPort}/`,
         close: () => new Promise((done) => server.close(() => done())),
       });
     });
