@@ -114,7 +114,10 @@ export class Deck {
     this.mode = "youtube";
     await this.ensureYouTubePlayer();
     this.ytReady = false;
-    this.yt?.cueVideoById(source.videoId);
+    // loadVideoById both cues and starts playback; combined with the
+    // app-level autoplay-policy switch this fires reliably even after the
+    // original user gesture has been consumed by async loading.
+    this.yt?.loadVideoById(source.videoId);
     this.applyVolume();
   }
 

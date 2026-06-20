@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 interface SliderProps {
   value: number; // 0..1
@@ -57,6 +57,77 @@ export function Modal({ title, onClose, children }: ModalProps) {
         <div className="modal__body">{children}</div>
       </div>
     </div>
+  );
+}
+
+interface EditableTextProps {
+  value: string;
+  onSubmit: (next: string) => void;
+  className?: string;
+  inputClassName?: string;
+  placeholder?: string;
+  title?: string;
+}
+
+/**
+ * Read-only label that flips to an `<input>` on click. Enter or blur commit,
+ * Escape cancels. Empty/whitespace-only submissions are ignored. Stops click
+ * propagation so it can sit safely inside other clickable parents (tiles).
+ */
+export function EditableText({
+  value,
+  onSubmit,
+  className,
+  inputClassName,
+  placeholder,
+  title,
+}: EditableTextProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
+  const commit = () => {
+    const next = draft.trim();
+    if (next && next !== value) onSubmit(next);
+    else setDraft(value);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        className={inputClassName ?? className}
+        value={draft}
+        placeholder={placeholder}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();
+          else if (e.key === "Escape") {
+            setDraft(value);
+            setEditing(false);
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <span
+      className={className}
+      title={title ?? "Klicken zum Umbenennen"}
+      onClick={(e) => {
+        e.stopPropagation();
+        setEditing(true);
+      }}
+    >
+      {value}
+    </span>
   );
 }
 

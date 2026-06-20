@@ -794,6 +794,39 @@ input[type="text"]:focus {
   border-color: var(--text);
 }
 
+/* ---------- Editable text ---------- */
+.tracklist__title--editable,
+.ambient-tile__name,
+.pad__name {
+  cursor: text;
+  border-radius: 4px;
+  transition: background-color 0.12s ease;
+}
+.tracklist__title--editable:hover,
+.ambient-tile__name:hover,
+.pad__name:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.tracklist__title--input,
+.ambient-tile__name--input,
+.pad__name--input {
+  font: inherit;
+  color: inherit;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  padding: 2px 6px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.pad__name--input {
+  text-align: center;
+}
+.ambient-tile__name--input {
+  text-align: center;
+}
+
 /* ---------- Update banner ---------- */
 .update-banner {
   display: flex;

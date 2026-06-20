@@ -54,6 +54,7 @@ interface StoreState extends PersistedState {
   // Track / library
   addLocalTracks: (files: FileList | File[]) => Promise<string[]>;
   addYouTubeTrack: (url: string, title?: string) => string | null;
+  renameTrack: (trackId: string, title: string) => void;
   deleteTrack: (trackId: string) => Promise<void>;
 
   // Playlists
@@ -79,6 +80,7 @@ interface StoreState extends PersistedState {
   // Ambient
   addAmbientLocal: (file: File, name: string, icon: string) => Promise<void>;
   addAmbientYouTube: (url: string, name: string, icon: string) => boolean;
+  renameAmbient: (id: string, name: string) => void;
   deleteAmbient: (id: string) => Promise<void>;
   toggleAmbient: (id: string) => void;
   setAmbientVolume: (id: string, volume: number) => void;
@@ -90,6 +92,7 @@ interface StoreState extends PersistedState {
     icon: string,
     color: string,
   ) => Promise<void>;
+  renameEffect: (id: string, name: string) => void;
   deleteEffect: (id: string) => Promise<void>;
   setEffectVolume: (id: string, volume: number) => void;
   playEffect: (id: string) => void;
@@ -218,6 +221,17 @@ export const useStore = create<StoreState>((set, get) => ({
     set((s) => ({ tracks: { ...s.tracks, [id]: track } }));
     schedulePersist(get);
     return id;
+  },
+
+  renameTrack: (trackId, title) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    set((s) => {
+      const existing = s.tracks[trackId];
+      if (!existing) return s;
+      return { tracks: { ...s.tracks, [trackId]: { ...existing, title: trimmed } } };
+    });
+    schedulePersist(get);
   },
 
   deleteTrack: async (trackId) => {
@@ -399,6 +413,15 @@ export const useStore = create<StoreState>((set, get) => ({
     return true;
   },
 
+  renameAmbient: (id, name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set((s) => ({
+      ambient: s.ambient.map((a) => (a.id === id ? { ...a, name: trimmed } : a)),
+    }));
+    schedulePersist(get);
+  },
+
   deleteAmbient: async (id) => {
     const sound = get().ambient.find((a) => a.id === id);
     get().ambientEngine?.stop(id);
@@ -436,6 +459,17 @@ export const useStore = create<StoreState>((set, get) => ({
       volume: 1,
     };
     set((s) => ({ soundboard: [...s.soundboard, effect] }));
+    schedulePersist(get);
+  },
+
+  renameEffect: (id, name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set((s) => ({
+      soundboard: s.soundboard.map((e) =>
+        e.id === id ? { ...e, name: trimmed } : e,
+      ),
+    }));
     schedulePersist(get);
   },
 

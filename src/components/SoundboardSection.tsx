@@ -1,13 +1,14 @@
 import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { SFX_COLORS, SFX_ICONS } from "../lib/format";
-import { ColorPicker, IconPicker, Modal, Slider } from "./common";
+import { ColorPicker, EditableText, IconPicker, Modal, Slider } from "./common";
 
 export function SoundboardSection() {
   const soundboard = useStore((s) => s.soundboard);
   const playEffect = useStore((s) => s.playEffect);
   const deleteEffect = useStore((s) => s.deleteEffect);
   const setEffectVolume = useStore((s) => s.setEffectVolume);
+  const renameEffect = useStore((s) => s.renameEffect);
 
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -43,7 +44,12 @@ export function SoundboardSection() {
               onClick={() => playEffect(effect.id)}
             >
               <span className="pad__icon">{effect.icon}</span>
-              <span className="pad__name">{effect.name}</span>
+              <EditableText
+                className="pad__name"
+                inputClassName="pad__name pad__name--input"
+                value={effect.name}
+                onSubmit={(next) => renameEffect(effect.id, next)}
+              />
             </button>
             {editing && (
               <div className="pad__edit">

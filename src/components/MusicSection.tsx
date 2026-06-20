@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import type { RepeatMode } from "../types";
+import { EditableText } from "./common";
 
 export function MusicSection() {
   const playlists = useStore((s) => s.playlists);
@@ -80,6 +81,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
   const removeTrackFromPlaylist = useStore((s) => s.removeTrackFromPlaylist);
   const moveTrackInPlaylist = useStore((s) => s.moveTrackInPlaylist);
   const deleteTrack = useStore((s) => s.deleteTrack);
+  const renameTrack = useStore((s) => s.renameTrack);
 
   if (!playlist) return null;
   const isActive = activePlaylistId === playlist.id;
@@ -203,7 +205,12 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               >
                 {isCurrent && status.playing ? "♪" : "▶"}
               </button>
-              <span className="tracklist__title">{track.title}</span>
+              <EditableText
+                className="tracklist__title tracklist__title--editable"
+                inputClassName="tracklist__title tracklist__title--input"
+                value={track.title}
+                onSubmit={(next) => renameTrack(trackId, next)}
+              />
               <span className="tracklist__badge">
                 {track.source.kind === "youtube" ? "YT" : "MP3"}
               </span>
