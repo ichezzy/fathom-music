@@ -1,9 +1,23 @@
+import { useEffect, useState } from "react";
 import { useStore } from "../store/store";
+import { desktop } from "../lib/desktop";
 import { Slider } from "./common";
 
 export function TopBar() {
   const mixer = useStore((s) => s.mixer);
   const setMixer = useStore((s) => s.setMixer);
+  const [version, setVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!desktop) return;
+    let active = true;
+    void desktop.getVersion().then((v) => {
+      if (active) setVersion(v);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <header className="topbar">
@@ -11,7 +25,10 @@ export function TopBar() {
         <span className="brand__mark">🍻</span>
         <div>
           <h1>TavernLoops</h1>
-          <p>TTRPG Audio Console</p>
+          <p>
+            TTRPG Audio Console
+            {version && <span className="brand__version">v{version}</span>}
+          </p>
         </div>
       </div>
 

@@ -87,6 +87,15 @@ input {
   text-transform: uppercase;
   letter-spacing: 1.5px;
 }
+.brand__version {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(224, 169, 85, 0.16);
+  color: var(--green);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
 
 .mixer {
   display: flex;

@@ -1,11 +1,30 @@
 const { app, BrowserWindow, shell, ipcMain } = require("electron");
 const path = require("node:path");
 const { autoUpdater } = require("electron-updater");
+const { startStaticServer } = require("./staticServer.cjs");
 
 const isDev = !app.isPackaged;
 const DEV_SERVER_URL = "http://127.0.0.1:5173";
 
 let mainWindow = null;
+let staticServer = null;
+
+async function loadRenderer() {
+  if (isDev) {
+    await mainWindow.loadURL(DEV_SERVER_URL);
+    return;
+  }
+  // Serve the build over http so the renderer has a real origin (YouTube
+  // embeds need it). Fall back to file:// if the server can't start.
+  const distDir = path.join(__dirname, "..", "dist");
+  try {
+    staticServer = await startStaticServer(distDir);
+    await mainWindow.loadURL(staticServer.url);
+  } catch (err) {
+    console.error("[static-server] falling back to file://:", err?.message);
+    await mainWindow.loadFile(path.join(distDir, "index.html"));
+  }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -28,11 +47,7 @@ function createWindow() {
     return { action: "deny" };
   });
 
-  if (isDev) {
-    mainWindow.loadURL(DEV_SERVER_URL);
-  } else {
-    mainWindow.loadFile(path.join(__dirname, "..", "dist", "index.html"));
-  }
+  void loadRenderer();
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -86,4 +101,8 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+app.on("before-quit", () => {
+  void staticServer?.close();
 });
