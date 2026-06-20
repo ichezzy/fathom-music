@@ -132,6 +132,9 @@ export class Deck {
           modestbranding: 1,
           rel: 0,
           playsinline: 1,
+          // Pin the postMessage origin so the IFrame API handshake works
+          // reliably inside the packaged app (served from http://127.0.0.1).
+          origin: window.location.origin,
         },
         events: {
           onReady: () => {
