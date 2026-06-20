@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { AMBIENT_ICONS } from "../lib/format";
-import { IconPicker, Modal, Slider } from "./common";
+import { EditableText, IconPicker, Modal, Slider } from "./common";
 
 export function AmbientSection() {
   const ambient = useStore((s) => s.ambient);
@@ -9,6 +9,7 @@ export function AmbientSection() {
   const toggleAmbient = useStore((s) => s.toggleAmbient);
   const setAmbientVolume = useStore((s) => s.setAmbientVolume);
   const deleteAmbient = useStore((s) => s.deleteAmbient);
+  const renameAmbient = useStore((s) => s.renameAmbient);
 
   const [adding, setAdding] = useState(false);
 
@@ -39,11 +40,16 @@ export function AmbientSection() {
                 onClick={() => toggleAmbient(sound.id)}
               >
                 <span className="ambient-tile__icon">{sound.icon}</span>
-                <span className="ambient-tile__name">{sound.name}</span>
                 <span className="ambient-tile__state">
                   {isOn ? "läuft" : "aus"}
                 </span>
               </button>
+              <EditableText
+                className="ambient-tile__name"
+                inputClassName="ambient-tile__name ambient-tile__name--input"
+                value={sound.name}
+                onSubmit={(next) => renameAmbient(sound.id, next)}
+              />
               <Slider
                 value={sound.volume}
                 ariaLabel={`${sound.name} Lautstärke`}
