@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { AMBIENT_ICONS } from "../lib/format";
+import { useT } from "../lib/i18n";
 import { EditableText, IconPicker, Modal, Slider } from "./common";
 
 export function AmbientSection() {
+  const t = useT();
   const ambient = useStore((s) => s.ambient);
   const activeIds = useStore((s) => s.ambientActiveIds);
   const toggleAmbient = useStore((s) => s.toggleAmbient);
@@ -16,18 +18,14 @@ export function AmbientSection() {
   return (
     <section className="panel ambient">
       <div className="panel__head">
-        <h2>🌫️ Ambient</h2>
+        <h2>🌫️ {t("ambient.title")}</h2>
         <button className="btn btn--small" onClick={() => setAdding(true)}>
-          + Sound
+          {t("ambient.addSound")}
         </button>
       </div>
 
       <div className="ambient__grid">
-        {ambient.length === 0 && (
-          <p className="empty">
-            Lege Höhlen-, Stadt- oder Tavernen-Loops an und mische sie frei.
-          </p>
-        )}
+        {ambient.length === 0 && <p className="empty">{t("ambient.empty")}</p>}
         {ambient.map((sound) => {
           const isOn = activeIds.includes(sound.id);
           return (
@@ -41,13 +39,14 @@ export function AmbientSection() {
               >
                 <span className="ambient-tile__icon">{sound.icon}</span>
                 <span className="ambient-tile__state">
-                  {isOn ? "läuft" : "aus"}
+                  {isOn ? t("ambient.running") : t("ambient.stopped")}
                 </span>
               </button>
               <EditableText
                 className="ambient-tile__name"
                 inputClassName="ambient-tile__name ambient-tile__name--input"
                 value={sound.name}
+                title={t("music.renameHint")}
                 onSubmit={(next) => renameAmbient(sound.id, next)}
               />
               <Slider
@@ -57,7 +56,7 @@ export function AmbientSection() {
               />
               <button
                 className="icon-btn icon-btn--mini ambient-tile__del"
-                title="Löschen"
+                title={t("ambient.delete")}
                 onClick={() => void deleteAmbient(sound.id)}
               >
                 🗑
@@ -73,6 +72,7 @@ export function AmbientSection() {
 }
 
 function AddAmbientModal({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const addAmbientLocal = useStore((s) => s.addAmbientLocal);
   const addAmbientYouTube = useStore((s) => s.addAmbientYouTube);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -85,7 +85,7 @@ function AddAmbientModal({ onClose }: { onClose: () => void }) {
   const onAddLocal = async () => {
     const file = fileRef.current?.files?.[0];
     if (!file) {
-      setError("Bitte eine Audiodatei wählen.");
+      setError(t("ambient.pickFile"));
       return;
     }
     await addAmbientLocal(file, name, icon);
@@ -94,47 +94,47 @@ function AddAmbientModal({ onClose }: { onClose: () => void }) {
 
   const onAddYouTube = () => {
     if (!addAmbientYouTube(ytUrl, name, icon)) {
-      setError("Ungültiger YouTube-Link.");
+      setError(t("music.invalidYt"));
       return;
     }
     onClose();
   };
 
   return (
-    <Modal title="Ambient-Sound hinzufügen" onClose={onClose}>
+    <Modal title={t("ambient.addTitle")} onClose={onClose}>
       <label className="field">
-        <span>Name</span>
+        <span>{t("ambient.name")}</span>
         <input
           type="text"
-          placeholder="z. B. Taverne, Höhle, Regen…"
+          placeholder={t("ambient.namePlaceholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
       </label>
 
       <div className="field">
-        <span>Icon</span>
+        <span>{t("ambient.icon")}</span>
         <IconPicker icons={AMBIENT_ICONS} value={icon} onChange={setIcon} />
       </div>
 
       <div className="field">
-        <span>Quelle: Datei</span>
+        <span>{t("ambient.sourceFile")}</span>
         <input ref={fileRef} type="file" accept="audio/*" />
         <button className="btn btn--ghost" onClick={() => void onAddLocal()}>
-          Aus Datei hinzufügen
+          {t("ambient.fromFile")}
         </button>
       </div>
 
       <div className="field">
-        <span>Quelle: YouTube</span>
+        <span>{t("ambient.sourceYt")}</span>
         <input
           type="text"
-          placeholder="YouTube-Link…"
+          placeholder={t("ambient.ytPlaceholder")}
           value={ytUrl}
           onChange={(e) => setYtUrl(e.target.value)}
         />
         <button className="btn btn--ghost" onClick={onAddYouTube}>
-          Aus YouTube hinzufügen
+          {t("ambient.fromYt")}
         </button>
       </div>
 

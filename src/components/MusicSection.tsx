@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import type { RepeatMode } from "../types";
+import { useT } from "../lib/i18n";
 import { EditableText } from "./common";
 
 export function MusicSection() {
+  const t = useT();
   const playlists = useStore((s) => s.playlists);
   const createPlaylist = useStore((s) => s.createPlaylist);
   const activePlaylistId = useStore((s) => s.activePlaylistId);
@@ -18,22 +20,22 @@ export function MusicSection() {
   return (
     <section className="panel music">
       <div className="panel__head">
-        <h2>🎵 Musik</h2>
+        <h2>🎵 {t("music.title")}</h2>
         <button
           className="btn btn--small"
           onClick={() => {
-            const id = createPlaylist("Neue Playlist");
+            const id = createPlaylist(t("music.newPlaylist"));
             setSelectedId(id);
           }}
         >
-          + Playlist
+          {t("music.addPlaylist")}
         </button>
       </div>
 
       <div className="music__body">
         <ul className="playlist-list">
           {playlists.length === 0 && (
-            <li className="empty">Noch keine Playlist.</li>
+            <li className="empty">{t("music.noPlaylists")}</li>
           )}
           {playlists.map((pl) => (
             <li key={pl.id}>
@@ -56,9 +58,7 @@ export function MusicSection() {
           {effectiveId ? (
             <PlaylistDetail playlistId={effectiveId} />
           ) : (
-            <div className="empty empty--center">
-              Erstelle eine Playlist, um Tracks hinzuzufügen.
-            </div>
+            <div className="empty empty--center">{t("music.pickToAdd")}</div>
           )}
         </div>
       </div>
@@ -67,6 +67,7 @@ export function MusicSection() {
 }
 
 function PlaylistDetail({ playlistId }: { playlistId: string }) {
+  const t = useT();
   const playlist = useStore((s) =>
     s.playlists.find((p) => p.id === playlistId),
   );
@@ -113,11 +114,11 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
             disabled={playlist.trackIds.length === 0}
             onClick={() => void playPlaylist(playlist.id, 0)}
           >
-            ▶ Abspielen
+            {t("music.play")}
           </button>
           <button
             className="icon-btn"
-            title="Playlist löschen"
+            title={t("music.deletePlaylist")}
             onClick={() => deletePlaylist(playlist.id)}
           >
             🗑
@@ -127,7 +128,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
 
       <div className="modes">
         <div className="modes__group">
-          <span className="modes__title">Loop Mode</span>
+          <span className="modes__title">{t("music.loopMode")}</span>
           <div className="seg">
             {(["off", "all", "one"] as RepeatMode[]).map((mode) => (
               <button
@@ -135,14 +136,14 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                 className={`seg__btn${playlist.repeat === mode ? " is-on" : ""}`}
                 onClick={() => setRepeat(mode)}
               >
-                {mode === "off" ? "Aus" : mode === "all" ? "Playlist" : "Track"}
+                {t(`music.loop.${mode}`)}
               </button>
             ))}
           </div>
         </div>
 
         <div className="modes__group">
-          <span className="modes__title">Transition Mode</span>
+          <span className="modes__title">{t("music.transition")}</span>
           <div className="modes__row">
             <button
               className={`toggle${playlist.crossfade ? " is-on" : ""}`}
@@ -151,7 +152,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               }
             >
               <span className="toggle__dot" />
-              {playlist.crossfade ? "Crossfade an" : "Hartschnitt"}
+              {playlist.crossfade ? t("music.crossfadeOn") : t("music.hardCut")}
             </button>
             <label className="cf-seconds">
               <input
@@ -172,7 +173,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
         </div>
 
         <div className="modes__group">
-          <span className="modes__title">Shuffle</span>
+          <span className="modes__title">{t("music.shuffle")}</span>
           <button
             className={`toggle${playlist.shuffle ? " is-on" : ""}`}
             onClick={() =>
@@ -180,14 +181,14 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
             }
           >
             <span className="toggle__dot" />
-            {playlist.shuffle ? "An" : "Aus"}
+            {playlist.shuffle ? t("music.on") : t("music.off")}
           </button>
         </div>
       </div>
 
       <ol className="tracklist">
         {playlist.trackIds.length === 0 && (
-          <li className="empty">Keine Tracks. Füge unten welche hinzu.</li>
+          <li className="empty">{t("music.noTracks")}</li>
         )}
         {playlist.trackIds.map((trackId, index) => {
           const track = tracks[trackId];
@@ -201,7 +202,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               <button
                 className="tracklist__play"
                 onClick={() => void playPlaylist(playlist.id, index)}
-                title="Diesen Track abspielen"
+                title={t("music.playThis")}
               >
                 {isCurrent && status.playing ? "♪" : "▶"}
               </button>
@@ -209,6 +210,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                 className="tracklist__title tracklist__title--editable"
                 inputClassName="tracklist__title tracklist__title--input"
                 value={track.title}
+                title={t("music.renameHint")}
                 onSubmit={(next) => renameTrack(trackId, next)}
               />
               <span className="tracklist__badge">
@@ -236,7 +238,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               </span>
               <button
                 className="icon-btn icon-btn--mini"
-                title="Entfernen"
+                title={t("music.remove")}
                 onClick={() => onRemoveTrack(index)}
               >
                 ✕
@@ -252,6 +254,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
 }
 
 function AddTrackForm({ playlistId }: { playlistId: string }) {
+  const t = useT();
   const addLocalTracks = useStore((s) => s.addLocalTracks);
   const addYouTubeTrack = useStore((s) => s.addYouTubeTrack);
   const addTrackToPlaylist = useStore((s) => s.addTrackToPlaylist);
@@ -272,7 +275,7 @@ function AddTrackForm({ playlistId }: { playlistId: string }) {
     setError(null);
     const id = addYouTubeTrack(ytUrl, ytTitle);
     if (!id) {
-      setError("Ungültiger YouTube-Link.");
+      setError(t("music.invalidYt"));
       return;
     }
     addTrackToPlaylist(playlistId, id);
@@ -293,24 +296,24 @@ function AddTrackForm({ playlistId }: { playlistId: string }) {
           onChange={(e) => void onFiles(e.target.files)}
         />
         <label className="btn btn--ghost" htmlFor={`file-${playlistId}`}>
-          ⬆ MP3 hochladen
+          {t("music.uploadMp3")}
         </label>
       </div>
       <div className="add-track__yt">
         <input
           type="text"
-          placeholder="YouTube-Link einfügen…"
+          placeholder={t("music.ytPlaceholder")}
           value={ytUrl}
           onChange={(e) => setYtUrl(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Titel (optional)"
+          placeholder={t("music.ytTitlePlaceholder")}
           value={ytTitle}
           onChange={(e) => setYtTitle(e.target.value)}
         />
         <button className="btn btn--ghost" onClick={onAddYouTube}>
-          + YouTube
+          {t("music.addYt")}
         </button>
       </div>
       {error && <p className="add-track__error">{error}</p>}

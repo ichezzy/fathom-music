@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import type {
   AmbientSound,
+  AppSettings,
+  EffectPlayback,
+  Language,
   MixerState,
   PersistedState,
   Playlist,
@@ -10,17 +13,21 @@ import type {
 } from "../types";
 import { uid, parseYouTubeId } from "../lib/id";
 import {
+  clearAllFiles,
   deleteFile,
+  getAllFileRecords,
   loadState,
   pruneOrphanFiles,
   putFile,
+  putRawFile,
   saveState,
 } from "../lib/db";
 import { MusicEngine, type MusicStatus } from "../audio/MusicEngine";
 import { AmbientEngine } from "../audio/AmbientEngine";
 import { SoundboardEngine } from "../audio/SoundboardEngine";
 
-const STATE_VERSION = 1;
+const STATE_VERSION = 2;
+const BACKUP_MAGIC = "tavernloops-backup";
 
 const DEFAULT_MIXER: MixerState = {
   master: 0.9,
@@ -28,6 +35,12 @@ const DEFAULT_MIXER: MixerState = {
   ambient: 0.6,
   soundboard: 0.85,
 };
+
+const DEFAULT_SETTINGS: AppSettings = {
+  language: "de",
+};
+
+const DEFAULT_PLAYBACK: EffectPlayback = { mode: "once" };
 
 const blankStatus: MusicStatus = {
   trackId: null,
@@ -46,6 +59,7 @@ interface StoreState extends PersistedState {
   status: MusicStatus;
   activePlaylistId: string | null;
   ambientActiveIds: string[];
+  soundboardLoopingIds: string[];
 
   // Lifecycle
   hydrate: () => Promise<void>;
@@ -93,12 +107,18 @@ interface StoreState extends PersistedState {
     color: string,
   ) => Promise<void>;
   renameEffect: (id: string, name: string) => void;
+  setEffectPlayback: (id: string, playback: EffectPlayback) => void;
   deleteEffect: (id: string) => Promise<void>;
   setEffectVolume: (id: string, volume: number) => void;
   playEffect: (id: string) => void;
 
   // Mixer
   setMixer: (patch: Partial<MixerState>) => void;
+
+  // Settings & backup
+  setLanguage: (language: Language) => void;
+  exportBackup: () => Promise<void>;
+  importBackup: (file: File) => Promise<void>;
 }
 
 let saveTimer: number | undefined;
@@ -113,6 +133,7 @@ function schedulePersist(get: () => StoreState): void {
       ambient: s.ambient,
       soundboard: s.soundboard,
       mixer: s.mixer,
+      settings: s.settings,
     };
     void saveState(snapshot);
   }, 400);
@@ -153,6 +174,7 @@ export const useStore = create<StoreState>((set, get) => ({
   ambient: [],
   soundboard: [],
   mixer: DEFAULT_MIXER,
+  settings: DEFAULT_SETTINGS,
 
   ready: false,
   music: null,
@@ -161,6 +183,7 @@ export const useStore = create<StoreState>((set, get) => ({
   status: blankStatus,
   activePlaylistId: null,
   ambientActiveIds: [],
+  soundboardLoopingIds: [],
 
   hydrate: async () => {
     const saved = await loadState();
@@ -169,8 +192,13 @@ export const useStore = create<StoreState>((set, get) => ({
         tracks: saved.tracks ?? {},
         playlists: saved.playlists ?? [],
         ambient: saved.ambient ?? [],
-        soundboard: saved.soundboard ?? [],
+        // Older saves predate per-effect playback; default it to one-shot.
+        soundboard: (saved.soundboard ?? []).map((e) => ({
+          ...e,
+          playback: e.playback ?? DEFAULT_PLAYBACK,
+        })),
         mixer: { ...DEFAULT_MIXER, ...(saved.mixer ?? {}) },
+        settings: { ...DEFAULT_SETTINGS, ...(saved.settings ?? {}) },
       });
     }
     set({ ready: true });
@@ -184,7 +212,9 @@ export const useStore = create<StoreState>((set, get) => ({
     const ambientEngine = new AmbientEngine(host, (ids) =>
       set({ ambientActiveIds: ids }),
     );
-    const soundboard_engine = new SoundboardEngine();
+    const soundboard_engine = new SoundboardEngine((ids) =>
+      set({ soundboardLoopingIds: ids }),
+    );
     set({ music, ambientEngine, soundboard_engine });
     applyMixer(get);
   },
@@ -457,6 +487,7 @@ export const useStore = create<StoreState>((set, get) => ({
       fileName: file.name,
       color,
       volume: 1,
+      playback: DEFAULT_PLAYBACK,
     };
     set((s) => ({ soundboard: [...s.soundboard, effect] }));
     schedulePersist(get);
@@ -473,8 +504,20 @@ export const useStore = create<StoreState>((set, get) => ({
     schedulePersist(get);
   },
 
+  setEffectPlayback: (id, playback) => {
+    set((s) => ({
+      soundboard: s.soundboard.map((e) =>
+        e.id === id ? { ...e, playback } : e,
+      ),
+    }));
+    // If it was looping and is now one-shot (or vice versa), stop the loop.
+    get().soundboard_engine?.stopLoop(id);
+    schedulePersist(get);
+  },
+
   deleteEffect: async (id) => {
     const effect = get().soundboard.find((e) => e.id === id);
+    get().soundboard_engine?.stopLoop(id);
     set((s) => ({ soundboard: s.soundboard.filter((e) => e.id !== id) }));
     if (effect) {
       get().soundboard_engine?.forget(effect.fileId);
@@ -495,7 +538,24 @@ export const useStore = create<StoreState>((set, get) => ({
 
   playEffect: (id) => {
     const effect = get().soundboard.find((e) => e.id === id);
-    if (effect) void get().soundboard_engine?.play(effect.fileId, effect.volume);
+    const engine = get().soundboard_engine;
+    if (!effect || !engine) return;
+    if (effect.playback.mode === "interval") {
+      // Tapping an interval pad toggles its loop on/off.
+      if (engine.isLooping(id)) {
+        engine.stopLoop(id);
+      } else {
+        engine.startLoop(
+          id,
+          effect.fileId,
+          effect.volume,
+          effect.playback.minSeconds,
+          effect.playback.maxSeconds,
+        );
+      }
+      return;
+    }
+    void engine.play(effect.fileId, effect.volume);
   },
 
   setMixer: (patch) => {
@@ -503,7 +563,97 @@ export const useStore = create<StoreState>((set, get) => ({
     applyMixer(get);
     schedulePersist(get);
   },
+
+  setLanguage: (language) => {
+    set((s) => ({ settings: { ...s.settings, language } }));
+    schedulePersist(get);
+  },
+
+  exportBackup: async () => {
+    const s = get();
+    const files = await getAllFileRecords();
+    const encoded = await Promise.all(
+      files.map(async (f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        data: await blobToBase64(f.blob),
+      })),
+    );
+    const payload = {
+      magic: BACKUP_MAGIC,
+      backupVersion: 1,
+      exportedAt: new Date().toISOString(),
+      state: {
+        version: STATE_VERSION,
+        tracks: s.tracks,
+        playlists: s.playlists,
+        ambient: s.ambient,
+        soundboard: s.soundboard,
+        mixer: s.mixer,
+        settings: s.settings,
+      } satisfies PersistedState,
+      files: encoded,
+    };
+    const blob = new Blob([JSON.stringify(payload)], {
+      type: "application/json",
+    });
+    const stamp = new Date().toISOString().slice(0, 10);
+    triggerDownload(blob, `tavernloops-backup-${stamp}.json`);
+  },
+
+  importBackup: async (file) => {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (data?.magic !== BACKUP_MAGIC || !data.state) {
+      throw new Error("invalid backup");
+    }
+    // Stop everything that might hold a file URL before swapping the data.
+    get().music?.stop();
+    get().ambientEngine?.stopAll();
+    get().soundboard_engine?.stopAllLoops();
+
+    await clearAllFiles();
+    for (const f of data.files ?? []) {
+      await putRawFile(f.id, base64ToBlob(f.data, f.type), f.name, f.type);
+    }
+    const state = data.state as PersistedState;
+    await saveState({ ...state, version: STATE_VERSION });
+    // Reload so engines and the store re-hydrate cleanly from the restore.
+    window.location.reload();
+  },
 }));
+
+function triggerDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const result = String(reader.result);
+      // Strip the "data:<type>;base64," prefix.
+      resolve(result.slice(result.indexOf(",") + 1));
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+function base64ToBlob(base64: string, type: string): Blob {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: type || "application/octet-stream" });
+}
 
 /** Re-push the active playlist's queue to the engine after edits. */
 function syncActiveQueue(get: () => StoreState): void {

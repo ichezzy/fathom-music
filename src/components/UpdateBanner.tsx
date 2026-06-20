@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { desktop } from "../lib/desktop";
+import { useT } from "../lib/i18n";
 
 export function UpdateBanner() {
+  const t = useT();
   const [version, setVersion] = useState<string | null>(null);
 
   useEffect(() => {
@@ -14,9 +16,9 @@ export function UpdateBanner() {
 
   return (
     <div className="update-banner">
-      <span>Update {version} ist bereit.</span>
+      <span>{t("update.ready", { version: version ?? "" })}</span>
       <button className="btn btn--small" onClick={() => void bridge.installUpdate()}>
-        Neustarten &amp; aktualisieren
+        {t("update.restart")}
       </button>
     </div>
   );

@@ -49,6 +49,24 @@ export interface SoundEffect {
   /** Tile accent color. */
   color: string;
   volume: number;
+  /** How the pad behaves when triggered. */
+  playback: EffectPlayback;
+}
+
+/**
+ * Soundboard trigger behaviour. `once` fires a single shot. `interval` keeps
+ * re-firing while armed; with min === max it's a fixed cadence, otherwise a
+ * random delay in [minSeconds, maxSeconds] between shots (e.g. a wolf howl
+ * every 30–60s).
+ */
+export type EffectPlayback =
+  | { mode: "once" }
+  | { mode: "interval"; minSeconds: number; maxSeconds: number };
+
+export type Language = "de" | "en";
+
+export interface AppSettings {
+  language: Language;
 }
 
 export interface MixerState {
@@ -65,4 +83,5 @@ export interface PersistedState {
   ambient: AmbientSound[];
   soundboard: SoundEffect[];
   mixer: MixerState;
+  settings: AppSettings;
 }

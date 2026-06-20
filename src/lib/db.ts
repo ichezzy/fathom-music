@@ -51,6 +51,36 @@ export async function deleteFile(id: string): Promise<void> {
   revokeFileUrl(id);
 }
 
+/** All stored file records — used to build a full backup. */
+export async function getAllFileRecords(): Promise<
+  { id: string; blob: Blob; name: string; type: string }[]
+> {
+  const database = await db();
+  return database.getAll("files");
+}
+
+/** Restore a file blob from a backup without going through a File object. */
+export async function putRawFile(
+  id: string,
+  blob: Blob,
+  name: string,
+  type: string,
+): Promise<void> {
+  const database = await db();
+  await database.put("files", { id, blob, name, type });
+  revokeFileUrl(id);
+}
+
+/** Wipe every file blob (used before restoring a backup). */
+export async function clearAllFiles(): Promise<void> {
+  const database = await db();
+  const keys = await database.getAllKeys("files");
+  const tx = database.transaction("files", "readwrite");
+  await Promise.all(keys.map((key) => tx.store.delete(key)));
+  await tx.done;
+  for (const key of keys) revokeFileUrl(key);
+}
+
 const urlCache = new Map<string, string>();
 
 /** Lazily create (and cache) an object URL for a stored file. */
