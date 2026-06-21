@@ -2,6 +2,9 @@ const { app, BrowserWindow, shell, ipcMain } = require("electron");
 const path = require("node:path");
 const { autoUpdater } = require("electron-updater");
 const { startStaticServer } = require("./staticServer.cjs");
+const { registerStorageIpc } = require("./storage.cjs");
+
+registerStorageIpc(ipcMain);
 
 // Let the YouTube IFrame player start playback after a user click without
 // being blocked by Chromium's "needs gesture" autoplay policy. Local

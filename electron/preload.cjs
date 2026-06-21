@@ -9,4 +9,14 @@ contextBridge.exposeInMainWorld("tavernloops", {
     ipcRenderer.on("update:downloaded", handler);
     return () => ipcRenderer.removeListener("update:downloaded", handler);
   },
+  storage: {
+    loadState: () => ipcRenderer.invoke("storage:loadState"),
+    saveState: (state) => ipcRenderer.invoke("storage:saveState", state),
+    putFile: (id, name, type, bytes) =>
+      ipcRenderer.invoke("storage:putFile", id, name, type, bytes),
+    getFile: (id) => ipcRenderer.invoke("storage:getFile", id),
+    deleteFile: (id) => ipcRenderer.invoke("storage:deleteFile", id),
+    listFiles: () => ipcRenderer.invoke("storage:listFiles"),
+    clearFiles: () => ipcRenderer.invoke("storage:clearFiles"),
+  },
 });
