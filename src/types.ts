@@ -67,6 +67,9 @@ export type Language = "de" | "en";
 
 export interface AppSettings {
   language: Language;
+  /** On launch, jump straight back into the previously active campaign
+   * instead of showing the main menu. */
+  autoOpenLastCampaign: boolean;
 }
 
 export interface MixerState {

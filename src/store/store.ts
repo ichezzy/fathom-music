@@ -43,6 +43,7 @@ const DEFAULT_MIXER: MixerState = {
 
 const DEFAULT_SETTINGS: AppSettings = {
   language: "de",
+  autoOpenLastCampaign: false,
 };
 
 const DEFAULT_PLAYBACK: EffectPlayback = { mode: "once" };
@@ -229,6 +230,7 @@ interface StoreState {
 
   // Settings & backup
   setLanguage: (language: Language) => void;
+  setSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
   exportBackup: () => Promise<void>;
   importBackup: (file: File) => Promise<void>;
 }
@@ -335,6 +337,7 @@ export const useStore = create<StoreState>((set, get) => ({
     const active =
       campaigns.find((c) => c.id === activeCampaignId) ?? campaigns[0];
     const savedRaw = saved as Partial<PersistedState> | undefined;
+    const settings = { ...DEFAULT_SETTINGS, ...(savedRaw?.settings ?? {}) };
     set({
       campaigns,
       activeCampaignId: active.id,
@@ -343,7 +346,9 @@ export const useStore = create<StoreState>((set, get) => ({
       ambient: active.ambient,
       soundboard: active.soundboard,
       mixer: { ...DEFAULT_MIXER, ...(savedRaw?.mixer ?? {}) },
-      settings: { ...DEFAULT_SETTINGS, ...(savedRaw?.settings ?? {}) },
+      settings,
+      // Skip the menu and go straight back into the last campaign, if asked.
+      view: settings.autoOpenLastCampaign ? "campaign" : "menu",
       ready: true,
     });
     // If we just upgraded an older single-library save, write the v3 shape now
@@ -794,6 +799,11 @@ export const useStore = create<StoreState>((set, get) => ({
 
   setLanguage: (language) => {
     set((s) => ({ settings: { ...s.settings, language } }));
+    schedulePersist(get);
+  },
+
+  setSetting: (key, value) => {
+    set((s) => ({ settings: { ...s.settings, [key]: value } }));
     schedulePersist(get);
   },
 
