@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 interface SliderProps {
   value: number; // 0..1
@@ -39,7 +40,10 @@ export function Modal({ title, onClose, children }: ModalProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  // Render at the document root so the modal escapes any parent stacking
+  // context (e.g. the sticky topbar's z-index, which would otherwise clip
+  // the modal underneath it).
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div
         className="modal"
@@ -56,7 +60,8 @@ export function Modal({ title, onClose, children }: ModalProps) {
         </div>
         <div className="modal__body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

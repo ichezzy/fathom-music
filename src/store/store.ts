@@ -15,6 +15,7 @@ import { uid, parseYouTubeId } from "../lib/id";
 import {
   clearAllFiles,
   deleteFile,
+  ensureMigrated,
   getAllFileRecords,
   loadState,
   pruneOrphanFiles,
@@ -186,6 +187,9 @@ export const useStore = create<StoreState>((set, get) => ({
   soundboardLoopingIds: [],
 
   hydrate: async () => {
+    // On desktop, copy any IndexedDB library from earlier versions into the
+    // filesystem store on first launch. No-op on web or after the first run.
+    await ensureMigrated();
     const saved = await loadState();
     if (saved) {
       set({
