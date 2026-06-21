@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "./store/store";
 import { TopBar } from "./components/TopBar";
+import { MainMenu } from "./components/MainMenu";
 import { MusicSection } from "./components/MusicSection";
 import { AmbientSection } from "./components/AmbientSection";
 import { SoundboardSection } from "./components/SoundboardSection";
@@ -9,6 +10,7 @@ import { UpdateBanner } from "./components/UpdateBanner";
 
 export function App() {
   const ready = useStore((s) => s.ready);
+  const view = useStore((s) => s.view);
   const hydrate = useStore((s) => s.hydrate);
   const initEngines = useStore((s) => s.initEngines);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -27,21 +29,24 @@ export function App() {
   return (
     <div className="app">
       <UpdateBanner />
-      <TopBar />
 
-      {ready ? (
-        <main className="layout">
-          <MusicSection />
-          <div className="layout__side">
-            <AmbientSection />
-            <SoundboardSection />
-          </div>
-        </main>
-      ) : (
+      {!ready ? (
         <div className="boot">Lade…</div>
+      ) : view === "menu" ? (
+        <MainMenu />
+      ) : (
+        <>
+          <TopBar />
+          <main className="layout">
+            <MusicSection />
+            <div className="layout__side">
+              <AmbientSection />
+              <SoundboardSection />
+            </div>
+          </main>
+          <NowPlayingBar />
+        </>
       )}
-
-      <NowPlayingBar />
 
       {/* Hidden host for <audio> + YouTube iframes */}
       <div

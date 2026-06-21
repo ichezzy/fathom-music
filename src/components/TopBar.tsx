@@ -9,6 +9,10 @@ export function TopBar() {
   const t = useT();
   const mixer = useStore((s) => s.mixer);
   const setMixer = useStore((s) => s.setMixer);
+  const setView = useStore((s) => s.setView);
+  const campaignName = useStore(
+    (s) => s.campaigns.find((c) => c.id === s.activeCampaignId)?.name ?? "",
+  );
   const [version, setVersion] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -26,11 +30,19 @@ export function TopBar() {
   return (
     <header className="topbar">
       <div className="brand">
+        <button
+          className="icon-btn topbar__back"
+          title={t("menu.back")}
+          aria-label={t("menu.back")}
+          onClick={() => setView("menu")}
+        >
+          ←
+        </button>
         <span className="brand__mark">🍻</span>
         <div>
           <h1>TavernLoops</h1>
           <p>
-            {t("app.subtitle")}
+            {campaignName || t("app.subtitle")}
             {version && <span className="brand__version">v{version}</span>}
           </p>
         </div>

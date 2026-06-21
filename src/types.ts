@@ -88,6 +88,10 @@ export interface CampaignData {
 export interface Campaign extends CampaignData {
   id: string;
   name: string;
+  /** Emoji shown on the campaign card. */
+  icon?: string;
+  /** Accent color for the campaign card. */
+  color?: string;
   /** The Standard campaign can't be deleted, so there's always a fallback. */
   isDefault?: boolean;
 }

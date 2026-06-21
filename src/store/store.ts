@@ -82,6 +82,8 @@ function normalizeCampaign(c: Partial<Campaign>): Campaign {
   return {
     id: c.id ?? uid("camp"),
     name: c.name ?? DEFAULT_CAMPAIGN_NAME,
+    icon: c.icon,
+    color: c.color,
     isDefault: c.isDefault,
     tracks: c.tracks ?? {},
     playlists: c.playlists ?? [],
@@ -164,8 +166,13 @@ interface StoreState {
   hydrate: () => Promise<void>;
   initEngines: (host: HTMLElement) => void;
 
+  // Navigation
+  view: "menu" | "campaign";
+  setView: (view: "menu" | "campaign") => void;
+  openCampaign: (id: string) => void;
+
   // Campaigns
-  createCampaign: (name: string) => string | null;
+  createCampaign: (name: string, icon?: string, color?: string) => string | null;
   renameCampaign: (id: string, name: string) => void;
   deleteCampaign: (id: string) => Promise<void>;
   setActiveCampaign: (id: string) => void;
@@ -311,6 +318,13 @@ export const useStore = create<StoreState>((set, get) => ({
   activePlaylistId: null,
   ambientActiveIds: [],
   soundboardLoopingIds: [],
+  view: "menu",
+
+  setView: (view) => set({ view }),
+  openCampaign: (id) => {
+    get().setActiveCampaign(id);
+    set({ view: "campaign" });
+  },
 
   hydrate: async () => {
     // On desktop, copy any IndexedDB library from earlier versions into the
@@ -338,12 +352,17 @@ export const useStore = create<StoreState>((set, get) => ({
     if (!wasV3) void saveState(snapshotOf(get()));
   },
 
-  createCampaign: (name) => {
+  createCampaign: (name, icon, color) => {
     const s = get();
     if (s.campaigns.length >= MAX_CAMPAIGNS) return null;
-    const campaign = makeCampaign(name.trim() || DEFAULT_CAMPAIGN_NAME);
+    const campaign: Campaign = {
+      ...makeCampaign(name.trim() || DEFAULT_CAMPAIGN_NAME),
+      icon,
+      color,
+    };
+    // Add without switching — the menu decides when to enter it.
     set({ campaigns: [...foldActive(s), campaign] });
-    get().setActiveCampaign(campaign.id);
+    schedulePersist(get);
     return campaign.id;
   },
 
