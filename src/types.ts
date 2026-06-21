@@ -76,12 +76,27 @@ export interface MixerState {
   soundboard: number;
 }
 
-export interface PersistedState {
-  version: number;
+/** The per-campaign library: everything that differs between campaigns. */
+export interface CampaignData {
   tracks: Record<string, Track>;
   playlists: Playlist[];
   ambient: AmbientSound[];
   soundboard: SoundEffect[];
+}
+
+/** A named profile (e.g. "Standard", "Curse of Strahd") with its own library. */
+export interface Campaign extends CampaignData {
+  id: string;
+  name: string;
+  /** The Standard campaign can't be deleted, so there's always a fallback. */
+  isDefault?: boolean;
+}
+
+export interface PersistedState {
+  version: number;
+  campaigns: Campaign[];
+  activeCampaignId: string;
+  /** Mixer and settings are global — shared across all campaigns. */
   mixer: MixerState;
   settings: AppSettings;
 }

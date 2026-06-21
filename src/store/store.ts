@@ -2,6 +2,8 @@ import { create } from "zustand";
 import type {
   AmbientSound,
   AppSettings,
+  Campaign,
+  CampaignData,
   EffectPlayback,
   Language,
   MixerState,
@@ -27,8 +29,10 @@ import { MusicEngine, type MusicStatus } from "../audio/MusicEngine";
 import { AmbientEngine } from "../audio/AmbientEngine";
 import { SoundboardEngine } from "../audio/SoundboardEngine";
 
-const STATE_VERSION = 2;
+const STATE_VERSION = 3;
 const BACKUP_MAGIC = "tavernloops-backup";
+const MAX_CAMPAIGNS = 4;
+const DEFAULT_CAMPAIGN_NAME = "Standard";
 
 const DEFAULT_MIXER: MixerState = {
   master: 0.9,
@@ -51,7 +55,101 @@ const blankStatus: MusicStatus = {
   currentSec: 0,
 };
 
-interface StoreState extends PersistedState {
+const EMPTY_DATA: CampaignData = {
+  tracks: {},
+  playlists: [],
+  ambient: [],
+  soundboard: [],
+};
+
+function makeCampaign(
+  name: string,
+  data?: Partial<CampaignData>,
+  isDefault = false,
+): Campaign {
+  return {
+    id: uid("camp"),
+    name,
+    isDefault,
+    tracks: data?.tracks ?? {},
+    playlists: data?.playlists ?? [],
+    ambient: data?.ambient ?? [],
+    soundboard: data?.soundboard ?? [],
+  };
+}
+
+function normalizeCampaign(c: Partial<Campaign>): Campaign {
+  return {
+    id: c.id ?? uid("camp"),
+    name: c.name ?? DEFAULT_CAMPAIGN_NAME,
+    isDefault: c.isDefault,
+    tracks: c.tracks ?? {},
+    playlists: c.playlists ?? [],
+    ambient: c.ambient ?? [],
+    // Older saves predate per-effect playback; default it to one-shot.
+    soundboard: (c.soundboard ?? []).map((e) => ({
+      ...e,
+      playback: e.playback ?? DEFAULT_PLAYBACK,
+    })),
+  };
+}
+
+/**
+ * Coerce any persisted shape (v3 campaigns, v2 top-level library, or nothing)
+ * into a campaign list + active id. Existing single-library saves become one
+ * non-deletable "Standard" campaign so upgrading users see no change.
+ */
+function normalizeToCampaigns(saved: unknown): {
+  campaigns: Campaign[];
+  activeCampaignId: string;
+} {
+  const s = saved as Record<string, unknown> | null | undefined;
+
+  if (s && Array.isArray(s.campaigns) && s.campaigns.length > 0) {
+    const campaigns = (s.campaigns as Partial<Campaign>[]).map(normalizeCampaign);
+    if (!campaigns.some((c) => c.isDefault)) campaigns[0].isDefault = true;
+    const savedActive = s.activeCampaignId as string | undefined;
+    const activeCampaignId =
+      savedActive && campaigns.some((c) => c.id === savedActive)
+        ? savedActive
+        : campaigns[0].id;
+    return { campaigns, activeCampaignId };
+  }
+
+  if (s && (s.tracks || s.playlists || s.ambient || s.soundboard)) {
+    const def = normalizeCampaign({
+      name: DEFAULT_CAMPAIGN_NAME,
+      isDefault: true,
+      tracks: s.tracks as CampaignData["tracks"],
+      playlists: s.playlists as CampaignData["playlists"],
+      ambient: s.ambient as CampaignData["ambient"],
+      soundboard: s.soundboard as CampaignData["soundboard"],
+    });
+    return { campaigns: [def], activeCampaignId: def.id };
+  }
+
+  const def = makeCampaign(DEFAULT_CAMPAIGN_NAME, EMPTY_DATA, true);
+  return { campaigns: [def], activeCampaignId: def.id };
+}
+
+interface StoreState {
+  // Global persisted
+  mixer: MixerState;
+  settings: AppSettings;
+
+  // Campaign registry. The active campaign's library is mirrored into the
+  // top-level tracks/playlists/ambient/soundboard fields below so the existing
+  // components keep working unchanged; the array is reconciled on persist and
+  // on switch via foldActive().
+  campaigns: Campaign[];
+  activeCampaignId: string;
+
+  // Active campaign's library (mirror of campaigns[activeCampaignId]).
+  tracks: Record<string, Track>;
+  playlists: Playlist[];
+  ambient: AmbientSound[];
+  soundboard: SoundEffect[];
+
   // Runtime / non-persisted
   ready: boolean;
   music: MusicEngine | null;
@@ -65,6 +163,12 @@ interface StoreState extends PersistedState {
   // Lifecycle
   hydrate: () => Promise<void>;
   initEngines: (host: HTMLElement) => void;
+
+  // Campaigns
+  createCampaign: (name: string) => string | null;
+  renameCampaign: (id: string, name: string) => void;
+  deleteCampaign: (id: string) => Promise<void>;
+  setActiveCampaign: (id: string) => void;
 
   // Track / library
   addLocalTracks: (files: FileList | File[]) => Promise<string[]>;
@@ -122,33 +226,52 @@ interface StoreState extends PersistedState {
   importBackup: (file: File) => Promise<void>;
 }
 
+/** Campaign list with the active campaign refreshed from the live mirror. */
+function foldActive(s: StoreState): Campaign[] {
+  return s.campaigns.map((c) =>
+    c.id === s.activeCampaignId
+      ? {
+          ...c,
+          tracks: s.tracks,
+          playlists: s.playlists,
+          ambient: s.ambient,
+          soundboard: s.soundboard,
+        }
+      : c,
+  );
+}
+
+function snapshotOf(s: StoreState): PersistedState {
+  return {
+    version: STATE_VERSION,
+    campaigns: foldActive(s),
+    activeCampaignId: s.activeCampaignId,
+    mixer: s.mixer,
+    settings: s.settings,
+  };
+}
+
 let saveTimer: number | undefined;
 function schedulePersist(get: () => StoreState): void {
   if (saveTimer) window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(() => {
-    const s = get();
-    const snapshot: PersistedState = {
-      version: STATE_VERSION,
-      tracks: s.tracks,
-      playlists: s.playlists,
-      ambient: s.ambient,
-      soundboard: s.soundboard,
-      mixer: s.mixer,
-      settings: s.settings,
-    };
-    void saveState(snapshot);
+    void saveState(snapshotOf(get()));
   }, 400);
 }
 
-function referencedFileIds(s: PersistedState): Set<string> {
+/** Files referenced by ANY campaign — so pruning never deletes another
+ * campaign's audio. */
+function referencedFileIds(s: StoreState): Set<string> {
   const ids = new Set<string>();
-  for (const t of Object.values(s.tracks)) {
-    if (t.source.kind === "local") ids.add(t.source.fileId);
+  for (const c of foldActive(s)) {
+    for (const t of Object.values(c.tracks)) {
+      if (t.source.kind === "local") ids.add(t.source.fileId);
+    }
+    for (const a of c.ambient) {
+      if (a.source.kind === "local") ids.add(a.source.fileId);
+    }
+    for (const e of c.soundboard) ids.add(e.fileId);
   }
-  for (const a of s.ambient) {
-    if (a.source.kind === "local") ids.add(a.source.fileId);
-  }
-  for (const e of s.soundboard) ids.add(e.fileId);
   return ids;
 }
 
@@ -168,14 +291,17 @@ function settingsOf(pl: Playlist) {
   };
 }
 
+const INITIAL_CAMPAIGN = makeCampaign(DEFAULT_CAMPAIGN_NAME, EMPTY_DATA, true);
+
 export const useStore = create<StoreState>((set, get) => ({
-  version: STATE_VERSION,
+  mixer: DEFAULT_MIXER,
+  settings: DEFAULT_SETTINGS,
+  campaigns: [INITIAL_CAMPAIGN],
+  activeCampaignId: INITIAL_CAMPAIGN.id,
   tracks: {},
   playlists: [],
   ambient: [],
   soundboard: [],
-  mixer: DEFAULT_MIXER,
-  settings: DEFAULT_SETTINGS,
 
   ready: false,
   music: null,
@@ -191,21 +317,100 @@ export const useStore = create<StoreState>((set, get) => ({
     // filesystem store on first launch. No-op on web or after the first run.
     await ensureMigrated();
     const saved = await loadState();
-    if (saved) {
+    const { campaigns, activeCampaignId } = normalizeToCampaigns(saved);
+    const active =
+      campaigns.find((c) => c.id === activeCampaignId) ?? campaigns[0];
+    const savedRaw = saved as Partial<PersistedState> | undefined;
+    set({
+      campaigns,
+      activeCampaignId: active.id,
+      tracks: active.tracks,
+      playlists: active.playlists,
+      ambient: active.ambient,
+      soundboard: active.soundboard,
+      mixer: { ...DEFAULT_MIXER, ...(savedRaw?.mixer ?? {}) },
+      settings: { ...DEFAULT_SETTINGS, ...(savedRaw?.settings ?? {}) },
+      ready: true,
+    });
+    // If we just upgraded an older single-library save, write the v3 shape now
+    // so the Standard campaign keeps a stable id from here on.
+    const wasV3 = Array.isArray((saved as Partial<PersistedState>)?.campaigns);
+    if (!wasV3) void saveState(snapshotOf(get()));
+  },
+
+  createCampaign: (name) => {
+    const s = get();
+    if (s.campaigns.length >= MAX_CAMPAIGNS) return null;
+    const campaign = makeCampaign(name.trim() || DEFAULT_CAMPAIGN_NAME);
+    set({ campaigns: [...foldActive(s), campaign] });
+    get().setActiveCampaign(campaign.id);
+    return campaign.id;
+  },
+
+  renameCampaign: (id, name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set((s) => ({
+      campaigns: s.campaigns.map((c) =>
+        c.id === id ? { ...c, name: trimmed } : c,
+      ),
+    }));
+    schedulePersist(get);
+  },
+
+  deleteCampaign: async (id) => {
+    const s = get();
+    const target = s.campaigns.find((c) => c.id === id);
+    if (!target || target.isDefault) return; // Standard is non-deletable
+    const remaining = foldActive(s).filter((c) => c.id !== id);
+
+    if (id === s.activeCampaignId) {
+      const fallback = remaining.find((c) => c.isDefault) ?? remaining[0];
+      s.music?.stop();
+      s.ambientEngine?.stopAll();
+      s.soundboard_engine?.stopAllLoops();
       set({
-        tracks: saved.tracks ?? {},
-        playlists: saved.playlists ?? [],
-        ambient: saved.ambient ?? [],
-        // Older saves predate per-effect playback; default it to one-shot.
-        soundboard: (saved.soundboard ?? []).map((e) => ({
-          ...e,
-          playback: e.playback ?? DEFAULT_PLAYBACK,
-        })),
-        mixer: { ...DEFAULT_MIXER, ...(saved.mixer ?? {}) },
-        settings: { ...DEFAULT_SETTINGS, ...(saved.settings ?? {}) },
+        campaigns: remaining,
+        activeCampaignId: fallback.id,
+        tracks: fallback.tracks,
+        playlists: fallback.playlists,
+        ambient: fallback.ambient,
+        soundboard: fallback.soundboard,
+        activePlaylistId: null,
+        status: blankStatus,
+        ambientActiveIds: [],
+        soundboardLoopingIds: [],
       });
+    } else {
+      set({ campaigns: remaining });
     }
-    set({ ready: true });
+    schedulePersist(get);
+    // Drop any audio files the deleted campaign exclusively referenced.
+    await pruneOrphanFiles(referencedFileIds(get()));
+  },
+
+  setActiveCampaign: (id) => {
+    const s = get();
+    if (id === s.activeCampaignId) return;
+    const campaigns = foldActive(s);
+    const target = campaigns.find((c) => c.id === id);
+    if (!target) return;
+    s.music?.stop();
+    s.ambientEngine?.stopAll();
+    s.soundboard_engine?.stopAllLoops();
+    set({
+      campaigns,
+      activeCampaignId: id,
+      tracks: target.tracks,
+      playlists: target.playlists,
+      ambient: target.ambient,
+      soundboard: target.soundboard,
+      activePlaylistId: null,
+      status: blankStatus,
+      ambientActiveIds: [],
+      soundboardLoopingIds: [],
+    });
+    schedulePersist(get);
   },
 
   initEngines: (host) => {
@@ -586,17 +791,9 @@ export const useStore = create<StoreState>((set, get) => ({
     );
     const payload = {
       magic: BACKUP_MAGIC,
-      backupVersion: 1,
+      backupVersion: 2,
       exportedAt: new Date().toISOString(),
-      state: {
-        version: STATE_VERSION,
-        tracks: s.tracks,
-        playlists: s.playlists,
-        ambient: s.ambient,
-        soundboard: s.soundboard,
-        mixer: s.mixer,
-        settings: s.settings,
-      } satisfies PersistedState,
+      state: snapshotOf(s),
       files: encoded,
     };
     const blob = new Blob([JSON.stringify(payload)], {
@@ -621,8 +818,9 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const f of data.files ?? []) {
       await putRawFile(f.id, base64ToBlob(f.data, f.type), f.name, f.type);
     }
-    const state = data.state as PersistedState;
-    await saveState({ ...state, version: STATE_VERSION });
+    // Save the backup's state as-is; hydrate normalizes older shapes (a v1
+    // backup with a single top-level library becomes a Standard campaign).
+    await saveState(data.state as PersistedState);
     // Reload so engines and the store re-hydrate cleanly from the restore.
     window.location.reload();
   },
