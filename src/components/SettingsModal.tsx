@@ -7,7 +7,9 @@ import { Modal } from "./common";
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const t = useT();
   const language = useStore((s) => s.settings.language);
+  const autoOpen = useStore((s) => s.settings.autoOpenLastCampaign);
   const setLanguage = useStore((s) => s.setLanguage);
+  const setSetting = useStore((s) => s.setSetting);
   const exportBackup = useStore((s) => s.exportBackup);
   const importBackup = useStore((s) => s.importBackup);
 
@@ -65,6 +67,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="field">
+        <span>{t("settings.startup")}</span>
+        <button
+          className={`toggle${autoOpen ? " is-on" : ""}`}
+          onClick={() => setSetting("autoOpenLastCampaign", !autoOpen)}
+        >
+          <span className="toggle__dot" />
+          {t("settings.autoOpen")}
+        </button>
+        <p className="field__hint">{t("settings.autoOpenHint")}</p>
       </div>
 
       <div className="field">

@@ -18,7 +18,6 @@ export function MainMenu() {
   const t = useT();
   const campaigns = useStore((s) => s.campaigns);
   const activeId = useStore((s) => s.activeCampaignId);
-  // Live counts for the active campaign come from the top-level mirror.
   const playlists = useStore((s) => s.playlists);
   const ambient = useStore((s) => s.ambient);
   const soundboard = useStore((s) => s.soundboard);
@@ -66,76 +65,80 @@ export function MainMenu() {
         <span className="menu__mark">🍻</span>
         <h1>TavernLoops</h1>
         <p>{t("menu.subtitle")}</p>
-        {version && <span className="menu__version">v{version}</span>}
       </header>
 
-      <div className="menu__grid">
+      <ol className="menu__list">
         {campaigns.map((c) => {
           const counts = countsFor(c);
+          const isActive = c.id === activeId;
           return (
-            <div
+            <li
               key={c.id}
-              className="campaign-card"
-              style={{
-                borderColor: c.color ?? "var(--line)",
-              }}
+              className={`campaign-row${isActive ? " is-active" : ""}`}
             >
               <button
-                className="campaign-card__open"
+                className="campaign-row__main"
                 style={{
-                  background: `linear-gradient(160deg, ${
-                    c.color ?? "#3a2f25"
-                  }, rgba(0,0,0,0.25))`,
+                  borderLeftColor: c.color ?? "var(--gold)",
                 }}
                 onClick={() => openCampaign(c.id)}
                 title={t("menu.open")}
               >
-                <span className="campaign-card__icon">{c.icon ?? "🍺"}</span>
+                <span
+                  className="campaign-row__icon"
+                  style={{ background: c.color ?? "#3a2f25" }}
+                >
+                  {c.icon ?? "🍺"}
+                </span>
+                <span className="campaign-row__text">
+                  <EditableText
+                    className="campaign-row__name"
+                    inputClassName="campaign-row__name campaign-row__name--input"
+                    value={c.name}
+                    title={t("music.renameHint")}
+                    onSubmit={(next) => renameCampaign(c.id, next)}
+                  />
+                  <span className="campaign-row__meta">
+                    {t("menu.playlistsCount", { n: counts.playlists })} ·{" "}
+                    {t("menu.soundsCount", { n: counts.sounds })}
+                    {isActive && (
+                      <span className="campaign-row__badge">
+                        {t("menu.active")}
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="campaign-row__chev" aria-hidden>
+                  ›
+                </span>
               </button>
-              <div className="campaign-card__body">
-                <EditableText
-                  className="campaign-card__name"
-                  inputClassName="campaign-card__name campaign-card__name--input"
-                  value={c.name}
-                  title={t("music.renameHint")}
-                  onSubmit={(next) => renameCampaign(c.id, next)}
-                />
-                <p className="campaign-card__meta">
-                  {t("menu.playlistsCount", { n: counts.playlists })} ·{" "}
-                  {t("menu.soundsCount", { n: counts.sounds })}
-                </p>
-                <div className="campaign-card__actions">
-                  <button
-                    className="btn btn--small"
-                    onClick={() => openCampaign(c.id)}
-                  >
-                    {t("menu.open")}
-                  </button>
-                  {!c.isDefault && (
-                    <button
-                      className="icon-btn icon-btn--mini"
-                      title={t("menu.delete")}
-                      onClick={() => onDelete(c)}
-                    >
-                      🗑
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+              {!c.isDefault && (
+                <button
+                  className="icon-btn icon-btn--mini campaign-row__del"
+                  title={t("menu.delete")}
+                  onClick={() => onDelete(c)}
+                >
+                  🗑
+                </button>
+              )}
+            </li>
           );
         })}
 
         {campaigns.length < MAX_CAMPAIGNS && (
-          <button
-            className="campaign-card campaign-card--new"
-            onClick={() => setCreating(true)}
-          >
-            <span className="campaign-card__plus">＋</span>
-            <span>{t("menu.new")}</span>
-          </button>
+          <li>
+            <button
+              className="campaign-row campaign-row--new"
+              onClick={() => setCreating(true)}
+            >
+              <span className="campaign-row__plus">＋</span>
+              <span>{t("menu.new")}</span>
+            </button>
+          </li>
         )}
-      </div>
+      </ol>
+
+      {version && <p className="menu__version">v{version}</p>}
 
       {creating && <NewCampaignModal onClose={() => setCreating(false)} />}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}

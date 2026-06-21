@@ -119,6 +119,11 @@ const de: Dict = {
   "menu.back": "Hauptmenü",
   "menu.playlistsCount": "{n} Playlists",
   "menu.soundsCount": "{n} Sounds",
+  "menu.active": "Aktiv",
+  "settings.startup": "Beim Start",
+  "settings.autoOpen": "Letzte Kampagne direkt öffnen",
+  "settings.autoOpenHint":
+    "Statt ins Hauptmenü springt die App direkt in die zuletzt geöffnete Kampagne.",
 };
 
 const en: Dict = {
@@ -231,6 +236,11 @@ const en: Dict = {
   "menu.back": "Main menu",
   "menu.playlistsCount": "{n} playlists",
   "menu.soundsCount": "{n} sounds",
+  "menu.active": "Active",
+  "settings.startup": "On launch",
+  "settings.autoOpen": "Open last campaign automatically",
+  "settings.autoOpenHint":
+    "Skip the main menu and jump straight back into the campaign you last opened.",
 };
 
 const dicts: Record<Language, Dict> = { de, en };

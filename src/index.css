@@ -771,15 +771,15 @@ input[type="text"]:focus {
   color: var(--muted);
 }
 
-/* ---------- Main menu ---------- */
+/* ---------- Main menu (vertical, game-style) ---------- */
 .menu {
   position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 56px 24px 64px;
-  gap: 36px;
+  padding: 56px 24px 48px;
+  gap: 28px;
 }
 .menu__settings {
   position: absolute;
@@ -811,53 +811,81 @@ input[type="text"]:focus {
   font-size: 13px;
 }
 .menu__version {
-  margin-top: 4px;
-  color: var(--green);
-  font-size: 12px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
   letter-spacing: 1px;
 }
-.menu__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 240px));
-  gap: 20px;
-  justify-content: center;
-  width: 100%;
-  max-width: 1040px;
-}
-.campaign-card {
+.menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
+  gap: 12px;
+  width: min(520px, 100%);
 }
-.campaign-card__open {
-  border: none;
+.campaign-row {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  background: transparent;
+}
+.campaign-row__main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--gold);
+  border-radius: 10px;
   cursor: pointer;
-  height: 110px;
+  color: inherit;
+  text-align: left;
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.08s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+.campaign-row__main:hover {
+  transform: translateX(4px);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border-color: var(--gold);
+}
+.campaign-row__main:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.campaign-row__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 }
-.campaign-card__icon {
-  font-size: 48px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
-}
-.campaign-card__body {
+.campaign-row__text {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px 14px;
+  gap: 2px;
+  min-width: 0;
 }
-.campaign-card__name {
-  font-size: 17px;
+.campaign-row__name {
+  font-size: 18px;
   font-weight: 600;
+  letter-spacing: 0.3px;
   cursor: text;
   border-radius: 4px;
+  display: inline-block;
 }
-.campaign-card__name--input {
+.campaign-row__name--input {
   font: inherit;
   color: inherit;
   background: rgba(0, 0, 0, 0.35);
@@ -867,34 +895,62 @@ input[type="text"]:focus {
   width: 100%;
   box-sizing: border-box;
 }
-.campaign-card__meta {
-  margin: 0;
+.campaign-row__meta {
   color: var(--muted);
   font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
-.campaign-card__actions {
+.campaign-row__badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(63, 125, 84, 0.22);
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.campaign-row.is-active .campaign-row__main {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border-color: rgba(63, 125, 84, 0.55);
+}
+.campaign-row__chev {
+  color: var(--muted);
+  font-size: 28px;
+  line-height: 1;
+  padding-right: 2px;
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+.campaign-row__main:hover .campaign-row__chev {
+  color: var(--gold);
+  transform: translateX(2px);
+}
+.campaign-row__del {
+  align-self: center;
+  margin-left: 8px;
+}
+.campaign-row--new {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 4px;
-}
-.campaign-card--new {
-  align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 200px;
-  cursor: pointer;
-  color: var(--muted);
-  border-style: dashed;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
   background: transparent;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  cursor: pointer;
   font-size: 14px;
+  letter-spacing: 0.5px;
 }
-.campaign-card--new:hover {
+.campaign-row--new:hover {
   color: var(--text);
   border-color: var(--gold);
 }
-.campaign-card__plus {
-  font-size: 40px;
+.campaign-row__plus {
+  font-size: 22px;
   line-height: 1;
 }
 
