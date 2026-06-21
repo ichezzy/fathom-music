@@ -105,6 +105,20 @@ const de: Dict = {
   "now.prev": "Vorheriger Track",
   "now.next": "Nächster Track",
   "now.position": "Position",
+  "menu.subtitle": "Wähle eine Kampagne",
+  "menu.new": "Neue Kampagne",
+  "menu.newTitle": "Neue Kampagne",
+  "menu.namePlaceholder": "Kampagnenname…",
+  "menu.icon": "Symbol",
+  "menu.color": "Farbe",
+  "menu.create": "Erstellen",
+  "menu.open": "Öffnen",
+  "menu.delete": "Kampagne löschen",
+  "menu.deleteConfirm":
+    "Kampagne „{name}“ löschen? Ihre Playlists und Sounds gehen verloren.",
+  "menu.back": "Hauptmenü",
+  "menu.playlistsCount": "{n} Playlists",
+  "menu.soundsCount": "{n} Sounds",
 };
 
 const en: Dict = {
@@ -203,6 +217,20 @@ const en: Dict = {
   "now.prev": "Previous track",
   "now.next": "Next track",
   "now.position": "Position",
+  "menu.subtitle": "Choose a campaign",
+  "menu.new": "New campaign",
+  "menu.newTitle": "New campaign",
+  "menu.namePlaceholder": "Campaign name…",
+  "menu.icon": "Icon",
+  "menu.color": "Color",
+  "menu.create": "Create",
+  "menu.open": "Open",
+  "menu.delete": "Delete campaign",
+  "menu.deleteConfirm":
+    "Delete campaign “{name}”? Its playlists and sounds will be lost.",
+  "menu.back": "Main menu",
+  "menu.playlistsCount": "{n} playlists",
+  "menu.soundsCount": "{n} sounds",
 };
 
 const dicts: Record<Language, Dict> = { de, en };
