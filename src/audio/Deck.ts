@@ -80,6 +80,25 @@ export class Deck {
     this.applyVolume();
   }
 
+  /**
+   * Route the deck's local audio element to a specific output device
+   * (`""` = system default). The YouTube iframe is a cross-origin frame we
+   * can't reach, so its audio keeps going to the OS default — that's a
+   * platform limitation, not a bug in this method.
+   */
+  async setSinkId(deviceId: string): Promise<void> {
+    const audio = this.audio as HTMLAudioElement & {
+      setSinkId?: (id: string) => Promise<void>;
+    };
+    if (typeof audio.setSinkId === "function") {
+      try {
+        await audio.setSinkId(deviceId);
+      } catch {
+        // unsupported device id or permission denied — fall back silently
+      }
+    }
+  }
+
   private applyVolume(): void {
     const v = clamp01(this.fade * this.outputScale);
     if (this.mode === "audio") {

@@ -44,6 +44,7 @@ const DEFAULT_MIXER: MixerState = {
 const DEFAULT_SETTINGS: AppSettings = {
   language: "de",
   autoOpenLastCampaign: false,
+  audioOutputDeviceId: "",
 };
 
 const DEFAULT_PLAYBACK: EffectPlayback = { mode: "once" };
@@ -231,6 +232,7 @@ interface StoreState {
   // Settings & backup
   setLanguage: (language: Language) => void;
   setSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
+  setAudioOutputDevice: (deviceId: string) => Promise<void>;
   exportBackup: () => Promise<void>;
   importBackup: (file: File) => Promise<void>;
 }
@@ -450,6 +452,13 @@ export const useStore = create<StoreState>((set, get) => ({
     );
     set({ music, ambientEngine, soundboard_engine });
     applyMixer(get);
+    // Restore the saved audio output device, if any.
+    const sink = get().settings.audioOutputDeviceId;
+    if (sink) {
+      void music.setSinkId(sink);
+      void ambientEngine.setSinkId(sink);
+      void soundboard_engine.setSinkId(sink);
+    }
   },
 
   addLocalTracks: async (files) => {
@@ -804,6 +813,19 @@ export const useStore = create<StoreState>((set, get) => ({
 
   setSetting: (key, value) => {
     set((s) => ({ settings: { ...s.settings, [key]: value } }));
+    schedulePersist(get);
+  },
+
+  setAudioOutputDevice: async (deviceId) => {
+    set((s) => ({
+      settings: { ...s.settings, audioOutputDeviceId: deviceId },
+    }));
+    const { music, ambientEngine, soundboard_engine } = get();
+    await Promise.all([
+      music?.setSinkId(deviceId),
+      ambientEngine?.setSinkId(deviceId),
+      soundboard_engine?.setSinkId(deviceId),
+    ]);
     schedulePersist(get);
   },
 

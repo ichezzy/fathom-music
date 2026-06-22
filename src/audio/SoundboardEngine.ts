@@ -14,6 +14,7 @@ export class SoundboardEngine {
   private buffers = new Map<string, AudioBuffer>();
   private pending = new Map<string, Promise<AudioBuffer | null>>();
   private outputScale = 1;
+  private sinkId = "";
 
   /** Active interval loops, keyed by effect id. */
   private loops = new Map<string, number>();
@@ -26,8 +27,26 @@ export class SoundboardEngine {
       this.master = this.ctx.createGain();
       this.master.gain.value = this.outputScale;
       this.master.connect(this.ctx.destination);
+      if (this.sinkId) void this.applySinkIdToContext();
     }
     return this.ctx;
+  }
+
+  private async applySinkIdToContext(): Promise<void> {
+    const ctx = this.ctx as
+      | (AudioContext & { setSinkId?: (id: string) => Promise<void> })
+      | null;
+    if (!ctx || typeof ctx.setSinkId !== "function") return;
+    try {
+      await ctx.setSinkId(this.sinkId);
+    } catch {
+      // older Chromium without AudioContext.setSinkId, or invalid id
+    }
+  }
+
+  async setSinkId(deviceId: string): Promise<void> {
+    this.sinkId = deviceId;
+    await this.applySinkIdToContext();
   }
 
   setOutputScale(scale: number): void {

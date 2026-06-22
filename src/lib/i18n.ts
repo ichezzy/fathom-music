@@ -135,6 +135,11 @@ const de: Dict = {
   "settings.shortcuts.nextprev": "← / → — Track wechseln",
   "settings.shortcuts.pads": "1 – 9 — Soundboard-Pads",
   "settings.shortcuts.stop": "Esc — Soundboard-Loops stoppen",
+  "settings.output": "Audio-Ausgabegerät",
+  "settings.output.default": "System-Standard",
+  "settings.output.refresh": "Geräte aktualisieren",
+  "settings.output.hint":
+    "Wirkt auf Musik (lokal), Ambient und Soundboard. YouTube-Tracks laufen weiter über das Windows-Standardgerät.",
   "music.dropHint": "Dateien hierher ziehen zum Hinzufügen",
 };
 
@@ -264,6 +269,11 @@ const en: Dict = {
   "settings.shortcuts.nextprev": "← / → — change track",
   "settings.shortcuts.pads": "1 – 9 — soundboard pads",
   "settings.shortcuts.stop": "Esc — stop soundboard loops",
+  "settings.output": "Audio output device",
+  "settings.output.default": "System default",
+  "settings.output.refresh": "Refresh devices",
+  "settings.output.hint":
+    "Affects music (local), ambient and soundboard. YouTube tracks keep using the Windows default output.",
   "music.dropHint": "Drop files here to add",
 };
 

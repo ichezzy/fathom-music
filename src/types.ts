@@ -70,6 +70,8 @@ export interface AppSettings {
   /** On launch, jump straight back into the previously active campaign
    * instead of showing the main menu. */
   autoOpenLastCampaign: boolean;
+  /** `MediaDeviceInfo.deviceId` for output; "" means the system default. */
+  audioOutputDeviceId: string;
 }
 
 export interface MixerState {

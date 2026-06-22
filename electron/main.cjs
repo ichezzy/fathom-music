@@ -65,6 +65,15 @@ function createWindow() {
 
   void loadRenderer();
 
+  // Let the renderer enumerate audio output devices with labels (needed for
+  // the output-device picker in Settings). Granting "media" up front keeps
+  // the one-time getUserMedia() unlock silent.
+  mainWindow.webContents.session.setPermissionRequestHandler(
+    (_wc, permission, callback) => {
+      callback(permission === "media");
+    },
+  );
+
   mainWindow.on("closed", () => {
     mainWindow = null;
   });

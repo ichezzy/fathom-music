@@ -976,6 +976,19 @@ input[type="text"]:focus {
   color: var(--muted);
   font-size: 13px;
 }
+.settings__output {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.settings__output select {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: inherit;
+  padding: 6px 8px;
+}
 
 /* ---------- Track drag & drop ---------- */
 .tracklist__grip {
