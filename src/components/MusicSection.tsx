@@ -83,9 +83,31 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
   const moveTrackInPlaylist = useStore((s) => s.moveTrackInPlaylist);
   const deleteTrack = useStore((s) => s.deleteTrack);
   const renameTrack = useStore((s) => s.renameTrack);
+  const addLocalTracks = useStore((s) => s.addLocalTracks);
+  const addTrackToPlaylist = useStore((s) => s.addTrackToPlaylist);
+
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  const [fileOver, setFileOver] = useState(false);
 
   if (!playlist) return null;
   const isActive = activePlaylistId === playlist.id;
+
+  const onDropReorder = (index: number) => {
+    if (dragIndex !== null && dragIndex !== index) {
+      moveTrackInPlaylist(playlist.id, dragIndex, index);
+    }
+    setDragIndex(null);
+    setDragOver(null);
+  };
+
+  const onDropFiles = async (files: FileList) => {
+    setFileOver(false);
+    const audio = Array.from(files).filter((f) => f.type.startsWith("audio/"));
+    if (audio.length === 0) return;
+    const ids = await addLocalTracks(audio);
+    ids.forEach((id) => addTrackToPlaylist(playlist.id, id));
+  };
 
   const setRepeat = (mode: RepeatMode) =>
     updatePlaylist(playlist.id, { repeat: mode });
@@ -186,7 +208,24 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
         </div>
       </div>
 
-      <ol className="tracklist">
+      <ol
+        className={`tracklist${fileOver ? " is-file-over" : ""}`}
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes("Files")) {
+            e.preventDefault();
+            setFileOver(true);
+          }
+        }}
+        onDragLeave={(e) => {
+          if (e.currentTarget === e.target) setFileOver(false);
+        }}
+        onDrop={(e) => {
+          if (e.dataTransfer.files.length > 0) {
+            e.preventDefault();
+            void onDropFiles(e.dataTransfer.files);
+          }
+        }}
+      >
         {playlist.trackIds.length === 0 && (
           <li className="empty">{t("music.noTracks")}</li>
         )}
@@ -197,8 +236,34 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
           return (
             <li
               key={`${trackId}-${index}`}
-              className={`tracklist__row${isCurrent ? " is-current" : ""}`}
+              className={`tracklist__row${isCurrent ? " is-current" : ""}${
+                dragOver === index ? " is-drag-over" : ""
+              }${dragIndex === index ? " is-dragging" : ""}`}
+              draggable
+              onDragStart={(e) => {
+                setDragIndex(index);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragEnd={() => {
+                setDragIndex(null);
+                setDragOver(null);
+              }}
+              onDragOver={(e) => {
+                if (dragIndex === null) return; // let file-drop bubble to <ol>
+                e.preventDefault();
+                e.stopPropagation();
+                if (dragOver !== index) setDragOver(index);
+              }}
+              onDrop={(e) => {
+                if (dragIndex === null) return;
+                e.preventDefault();
+                e.stopPropagation();
+                onDropReorder(index);
+              }}
             >
+              <span className="tracklist__grip" aria-hidden title="">
+                ⠿
+              </span>
               <button
                 className="tracklist__play"
                 onClick={() => void playPlaylist(playlist.id, index)}

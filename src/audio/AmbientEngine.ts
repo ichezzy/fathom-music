@@ -10,6 +10,7 @@ interface Channel {
 export class AmbientEngine {
   private channels = new Map<string, Channel>();
   private outputScale = 1;
+  private sinkId = "";
 
   constructor(
     private host: HTMLElement,
@@ -38,6 +39,7 @@ export class AmbientEngine {
     const channel: Channel = { deck, volume: sound.volume };
     this.channels.set(sound.id, channel);
     deck.setOutputScale(this.outputScale);
+    if (this.sinkId) void deck.setSinkId(this.sinkId);
     deck.setFade(sound.volume);
     await deck.load(sound.source, { loop: true });
     deck.setLoop(true);
@@ -66,6 +68,13 @@ export class AmbientEngine {
     for (const channel of this.channels.values()) {
       channel.deck.setOutputScale(scale);
     }
+  }
+
+  async setSinkId(deviceId: string): Promise<void> {
+    this.sinkId = deviceId;
+    await Promise.all(
+      [...this.channels.values()].map((c) => c.deck.setSinkId(deviceId)),
+    );
   }
 
   stopAll(): void {

@@ -124,6 +124,23 @@ const de: Dict = {
   "settings.autoOpen": "Letzte Kampagne direkt öffnen",
   "settings.autoOpenHint":
     "Statt ins Hauptmenü springt die App direkt in die zuletzt geöffnete Kampagne.",
+  "settings.update": "Updates",
+  "settings.checkUpdates": "Nach Updates suchen",
+  "settings.update.checking": "Suche…",
+  "settings.update.upToDate": "Du bist auf dem neuesten Stand.",
+  "settings.update.found": "Update {version} wird geladen…",
+  "settings.update.error": "Update-Prüfung fehlgeschlagen.",
+  "settings.shortcuts": "Tastenkürzel",
+  "settings.shortcuts.playpause": "Leertaste — Play / Pause",
+  "settings.shortcuts.nextprev": "← / → — Track wechseln",
+  "settings.shortcuts.pads": "1 – 9 — Soundboard-Pads",
+  "settings.shortcuts.stop": "Esc — Soundboard-Loops stoppen",
+  "settings.output": "Audio-Ausgabegerät",
+  "settings.output.default": "System-Standard",
+  "settings.output.refresh": "Geräte aktualisieren",
+  "settings.output.hint":
+    "Wirkt auf Musik (lokal), Ambient und Soundboard. YouTube-Tracks laufen weiter über das Windows-Standardgerät.",
+  "music.dropHint": "Dateien hierher ziehen zum Hinzufügen",
 };
 
 const en: Dict = {
@@ -241,6 +258,23 @@ const en: Dict = {
   "settings.autoOpen": "Open last campaign automatically",
   "settings.autoOpenHint":
     "Skip the main menu and jump straight back into the campaign you last opened.",
+  "settings.update": "Updates",
+  "settings.checkUpdates": "Check for updates",
+  "settings.update.checking": "Checking…",
+  "settings.update.upToDate": "You're up to date.",
+  "settings.update.found": "Update {version} downloading…",
+  "settings.update.error": "Update check failed.",
+  "settings.shortcuts": "Shortcuts",
+  "settings.shortcuts.playpause": "Space — play / pause",
+  "settings.shortcuts.nextprev": "← / → — change track",
+  "settings.shortcuts.pads": "1 – 9 — soundboard pads",
+  "settings.shortcuts.stop": "Esc — stop soundboard loops",
+  "settings.output": "Audio output device",
+  "settings.output.default": "System default",
+  "settings.output.refresh": "Refresh devices",
+  "settings.output.hint":
+    "Affects music (local), ambient and soundboard. YouTube tracks keep using the Windows default output.",
+  "music.dropHint": "Drop files here to add",
 };
 
 const dicts: Record<Language, Dict> = { de, en };

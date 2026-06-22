@@ -967,6 +967,51 @@ input[type="text"]:focus {
   flex-wrap: wrap;
   gap: 10px;
 }
+.settings__shortcuts {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.settings__output {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.settings__output select {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: inherit;
+  padding: 6px 8px;
+}
+
+/* ---------- Track drag & drop ---------- */
+.tracklist__grip {
+  cursor: grab;
+  color: var(--muted);
+  opacity: 0.6;
+  user-select: none;
+  padding: 0 2px;
+}
+.tracklist__grip:active {
+  cursor: grabbing;
+}
+.tracklist__row.is-dragging {
+  opacity: 0.4;
+}
+.tracklist__row.is-drag-over {
+  box-shadow: inset 0 2px 0 var(--gold);
+}
+.tracklist.is-file-over {
+  outline: 2px dashed var(--gold);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
 
 /* ---------- Soundboard playback editor ---------- */
 .seg--mini .seg__btn {

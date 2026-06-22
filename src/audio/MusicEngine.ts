@@ -110,6 +110,13 @@ export class MusicEngine {
     this.deckB.setOutputScale(scale);
   }
 
+  async setSinkId(deviceId: string): Promise<void> {
+    await Promise.all([
+      this.deckA.setSinkId(deviceId),
+      this.deckB.setSinkId(deviceId),
+    ]);
+  }
+
   updateSettings(partial: Partial<MusicSettings>): void {
     const prevShuffle = this.settings.shuffle;
     this.settings = { ...this.settings, ...partial };

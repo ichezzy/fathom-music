@@ -8,15 +8,40 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const t = useT();
   const language = useStore((s) => s.settings.language);
   const autoOpen = useStore((s) => s.settings.autoOpenLastCampaign);
+  const audioOut = useStore((s) => s.settings.audioOutputDeviceId);
   const setLanguage = useStore((s) => s.setLanguage);
   const setSetting = useStore((s) => s.setSetting);
+  const setAudioOutputDevice = useStore((s) => s.setAudioOutputDevice);
   const exportBackup = useStore((s) => s.exportBackup);
   const importBackup = useStore((s) => s.importBackup);
+  const [outputs, setOutputs] = useState<MediaDeviceInfo[]>([]);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [version, setVersion] = useState<string | null>(null);
   const [busy, setBusy] = useState<"export" | "import" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [updateMsg, setUpdateMsg] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const onCheckUpdates = async () => {
+    if (!desktop) return;
+    setChecking(true);
+    setUpdateMsg(t("settings.update.checking"));
+    try {
+      const r = await desktop.checkForUpdates();
+      if (r.status === "ok" && r.version && r.version !== version) {
+        setUpdateMsg(t("settings.update.found", { version: r.version }));
+      } else if (r.status === "error") {
+        setUpdateMsg(t("settings.update.error"));
+      } else {
+        setUpdateMsg(t("settings.update.upToDate"));
+      }
+    } catch {
+      setUpdateMsg(t("settings.update.error"));
+    } finally {
+      setChecking(false);
+    }
+  };
 
   useEffect(() => {
     if (!desktop) return;
@@ -25,6 +50,33 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     return () => {
       active = false;
     };
+  }, []);
+
+  // Enumerate output devices. Labels stay blank until we hold a media
+  // permission for the session; a one-shot getUserMedia call unlocks them
+  // and we drop the stream immediately so the mic isn't actually used.
+  const refreshDevices = async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    let list = await navigator.mediaDevices.enumerateDevices();
+    const needsUnlock = list.some(
+      (d) => d.kind === "audiooutput" && !d.label,
+    );
+    if (needsUnlock) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        stream.getTracks().forEach((t) => t.stop());
+        list = await navigator.mediaDevices.enumerateDevices();
+      } catch {
+        // permission denied: labels stay blank, ids still work
+      }
+    }
+    setOutputs(list.filter((d) => d.kind === "audiooutput"));
+  };
+
+  useEffect(() => {
+    void refreshDevices();
   }, []);
 
   const onExport = async () => {
@@ -67,6 +119,30 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="field">
+        <span>{t("settings.output")}</span>
+        <div className="settings__output">
+          <select
+            value={audioOut}
+            onChange={(e) => void setAudioOutputDevice(e.target.value)}
+          >
+            <option value="">{t("settings.output.default")}</option>
+            {outputs.map((d) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || d.deviceId.slice(0, 12)}
+              </option>
+            ))}
+          </select>
+          <button
+            className="btn btn--ghost btn--small"
+            onClick={() => void refreshDevices()}
+          >
+            ↻
+          </button>
+        </div>
+        <p className="field__hint">{t("settings.output.hint")}</p>
       </div>
 
       <div className="field">
@@ -113,6 +189,30 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         </div>
         {error && <p className="add-track__error">{error}</p>}
       </div>
+
+      <div className="field">
+        <span>{t("settings.shortcuts")}</span>
+        <ul className="settings__shortcuts">
+          <li>{t("settings.shortcuts.playpause")}</li>
+          <li>{t("settings.shortcuts.nextprev")}</li>
+          <li>{t("settings.shortcuts.pads")}</li>
+          <li>{t("settings.shortcuts.stop")}</li>
+        </ul>
+      </div>
+
+      {desktop && (
+        <div className="field">
+          <span>{t("settings.update")}</span>
+          <button
+            className="btn btn--ghost"
+            disabled={checking}
+            onClick={() => void onCheckUpdates()}
+          >
+            {t("settings.checkUpdates")}
+          </button>
+          {updateMsg && <p className="field__hint">{updateMsg}</p>}
+        </div>
+      )}
 
       <div className="field">
         <span>{t("settings.about")}</span>
