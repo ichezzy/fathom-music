@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "./store/store";
+import { actionFor } from "./lib/hotkeys";
+import type { HotkeyAction } from "./lib/hotkeys";
 import { TopBar } from "./components/TopBar";
 import { MainMenu } from "./components/MainMenu";
 import { MusicSection } from "./components/MusicSection";
@@ -42,18 +44,31 @@ export function App() {
       ) {
         return;
       }
-      if (e.code === "Space") {
-        e.preventDefault();
-        s.togglePlay();
-      } else if (e.code === "ArrowRight") {
-        s.next();
-      } else if (e.code === "ArrowLeft") {
-        s.previous();
-      } else if (e.code === "Escape") {
-        s.soundboard_engine?.stopAllLoops();
-      } else if (/^Digit[1-9]$/.test(e.code)) {
-        const fx = s.soundboard[Number(e.code.slice(5)) - 1];
-        if (fx) s.playEffect(fx.id);
+      const action = actionFor(
+        e.code,
+        s.settings.hotkeys as Partial<Record<HotkeyAction, string>> | undefined,
+      );
+      if (!action) return;
+      e.preventDefault();
+      switch (action) {
+        case "togglePlay":
+          s.togglePlay();
+          break;
+        case "next":
+          s.next();
+          break;
+        case "previous":
+          s.previous();
+          break;
+        case "stopLoops":
+          s.soundboard_engine?.stopAllLoops();
+          break;
+        default: {
+          // pad1..pad9
+          const padIndex = Number(action.replace("pad", "")) - 1;
+          const fx = s.soundboard[padIndex];
+          if (fx) s.playEffect(fx.id);
+        }
       }
     };
     window.addEventListener("keydown", onKey);

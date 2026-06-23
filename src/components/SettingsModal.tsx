@@ -2,6 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { desktop } from "../lib/desktop";
 import { LANGUAGES, useT } from "../lib/i18n";
+import {
+  HOTKEY_ACTIONS,
+  HOTKEY_LABEL_KEYS,
+  actionFor,
+  bindingFor,
+  formatKey,
+  type HotkeyAction,
+} from "../lib/hotkeys";
 import { Modal } from "./common";
 
 type Tab = "general" | "audio" | "hotkeys" | "backup" | "about";
@@ -147,15 +155,84 @@ function AudioTab() {
 
 function HotkeysTab() {
   const t = useT();
+  const overrides = useStore((s) => s.settings.hotkeys);
+  const setHotkey = useStore((s) => s.setHotkey);
+  const resetHotkeys = useStore((s) => s.resetHotkeys);
+  const [capturing, setCapturing] = useState<HotkeyAction | null>(null);
+
+  // While capturing, swallow the next keystroke and assign it to the action.
+  useEffect(() => {
+    if (!capturing) return;
+    const onKey = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.code === "Escape") {
+        setCapturing(null);
+        return;
+      }
+      // Ignore modifier-only presses; require a real key.
+      if (
+        e.code === "ControlLeft" ||
+        e.code === "ControlRight" ||
+        e.code === "ShiftLeft" ||
+        e.code === "ShiftRight" ||
+        e.code === "AltLeft" ||
+        e.code === "AltRight" ||
+        e.code === "MetaLeft" ||
+        e.code === "MetaRight"
+      ) {
+        return;
+      }
+      setHotkey(capturing, e.code);
+      setCapturing(null);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [capturing, setHotkey]);
+
+  const label = (action: HotkeyAction) => {
+    const key = HOTKEY_LABEL_KEYS[action];
+    if (key === "hotkey.pad") {
+      return `${t("hotkey.pad")} ${action.replace("pad", "")}`;
+    }
+    return t(key);
+  };
+
   return (
     <div className="field">
       <span>{t("settings.shortcuts")}</span>
-      <ul className="settings__shortcuts">
-        <li>{t("settings.shortcuts.playpause")}</li>
-        <li>{t("settings.shortcuts.nextprev")}</li>
-        <li>{t("settings.shortcuts.pads")}</li>
-        <li>{t("settings.shortcuts.stop")}</li>
+      <ul className="hotkey-list">
+        {HOTKEY_ACTIONS.map((action) => {
+          const code = bindingFor(action, overrides);
+          // Conflict: same code bound to a different action (effective binding).
+          const owner = actionFor(code, overrides);
+          const conflict = owner && owner !== action ? owner : null;
+          return (
+            <li key={action} className="hotkey-list__row">
+              <span className="hotkey-list__label">{label(action)}</span>
+              <button
+                className={`hotkey-list__bind${
+                  capturing === action ? " is-capturing" : ""
+                }${conflict ? " has-conflict" : ""}`}
+                onClick={() =>
+                  setCapturing((cur) => (cur === action ? null : action))
+                }
+                title={t("hotkey.rebind")}
+              >
+                {capturing === action ? t("hotkey.press") : formatKey(code)}
+              </button>
+              {conflict && capturing !== action && (
+                <span className="hotkey-list__conflict">
+                  {t("hotkey.conflict")} {label(conflict)}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
+      <button className="btn btn--ghost btn--small" onClick={resetHotkeys}>
+        {t("hotkey.reset")}
+      </button>
     </div>
   );
 }

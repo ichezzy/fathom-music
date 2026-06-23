@@ -72,6 +72,9 @@ export interface AppSettings {
   autoOpenLastCampaign: boolean;
   /** `MediaDeviceInfo.deviceId` for output; "" means the system default. */
   audioOutputDeviceId: string;
+  /** User overrides for hotkey bindings (KeyboardEvent.code per action id).
+   * Missing entries use the built-in defaults from src/lib/hotkeys.ts. */
+  hotkeys?: Record<string, string>;
 }
 
 export interface MixerState {

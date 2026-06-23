@@ -233,6 +233,8 @@ interface StoreState {
   setLanguage: (language: Language) => void;
   setSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
   setAudioOutputDevice: (deviceId: string) => Promise<void>;
+  setHotkey: (action: string, code: string) => void;
+  resetHotkeys: () => void;
   exportBackup: () => Promise<void>;
   importBackup: (file: File) => Promise<void>;
 }
@@ -826,6 +828,21 @@ export const useStore = create<StoreState>((set, get) => ({
       ambientEngine?.setSinkId(deviceId),
       soundboard_engine?.setSinkId(deviceId),
     ]);
+    schedulePersist(get);
+  },
+
+  setHotkey: (action, code) => {
+    set((s) => ({
+      settings: {
+        ...s.settings,
+        hotkeys: { ...(s.settings.hotkeys ?? {}), [action]: code },
+      },
+    }));
+    schedulePersist(get);
+  },
+
+  resetHotkeys: () => {
+    set((s) => ({ settings: { ...s.settings, hotkeys: {} } }));
     schedulePersist(get);
   },
 
