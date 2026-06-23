@@ -1217,14 +1217,15 @@ input[type="text"]:focus {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: 10px 12px;
-  gap: 6px;
+  padding: 14px 18px;
+  gap: 12px;
   background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  box-sizing: border-box;
 }
 .mini__row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .mini__row--bottom {
   flex: 1;
@@ -1233,26 +1234,27 @@ input[type="text"]:focus {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 .mini__icon {
-  font-size: 22px;
+  font-size: 26px;
 }
 .mini__text {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
 }
 .mini__title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .mini__sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -1262,11 +1264,19 @@ input[type="text"]:focus {
   font-variant-numeric: tabular-nums;
   font-size: 12px;
   color: var(--muted);
-  margin-left: 6px;
+  margin-left: 4px;
+  white-space: nowrap;
 }
 .mini__vol {
   flex: 1;
-  min-width: 120px;
+  min-width: 140px;
+}
+
+/* ---------- Loop button ---------- */
+.loop-btn.is-on {
+  color: var(--gold);
+  background: rgba(224, 169, 85, 0.12);
+  border-radius: 6px;
 }
 
 .topbar__actions {

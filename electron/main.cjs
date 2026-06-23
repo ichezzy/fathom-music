@@ -1,5 +1,7 @@
-const { app, BrowserWindow, Menu, Tray, shell, ipcMain } = require("electron");
+const { app, BrowserWindow, Menu, Tray, nativeImage, shell, ipcMain } =
+  require("electron");
 const path = require("node:path");
+const fs = require("node:fs");
 const { autoUpdater } = require("electron-updater");
 const { startStaticServer } = require("./staticServer.cjs");
 const { registerStorageIpc } = require("./storage.cjs");
@@ -23,7 +25,7 @@ const DEV_SERVER_URL = "http://127.0.0.1:5173";
 const APP_PORT = 47615;
 
 // Mini-player window size (compact transport bar).
-const MINI = { width: 520, height: 130 };
+const MINI = { width: 660, height: 200 };
 
 let mainWindow = null;
 let staticServer = null;
@@ -177,11 +179,39 @@ function buildTrayMenu() {
   ]);
 }
 
+/** First existing path among the candidates, or null. */
+function findTrayIconPath() {
+  const candidates = [
+    // dev: project's build/ folder
+    path.join(__dirname, "..", "build", "icon.png"),
+    // packaged: app.asar/build/icon.png (we list build/icon.png in build.files)
+    path.join(app.getAppPath(), "build", "icon.png"),
+    // packaged: extra resources sibling (if ever moved out of asar)
+    path.join(process.resourcesPath || "", "build", "icon.png"),
+  ];
+  for (const p of candidates) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
 function enableTray() {
-  if (trayIcon) return;
+  if (trayIcon) {
+    trayEnabled = true;
+    return;
+  }
   try {
-    const iconPath = path.join(__dirname, "..", "build", "icon.png");
-    trayIcon = new Tray(iconPath);
+    const iconPath = findTrayIconPath();
+    // Use a nativeImage so we can resize for the tray (16/24 px is typical);
+    // empty image if the file is missing keeps the icon invisible but the
+    // close-to-tray behaviour still works.
+    const image = iconPath
+      ? nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 })
+      : nativeImage.createEmpty();
+    if (!iconPath) {
+      console.warn("[tray] icon file not found; using empty image");
+    }
+    trayIcon = new Tray(image);
     trayIcon.setToolTip("TavernLoops");
     trayIcon.setContextMenu(buildTrayMenu());
     trayIcon.on("click", () => {
@@ -191,6 +221,9 @@ function enableTray() {
     trayEnabled = true;
   } catch (err) {
     console.error("[tray] failed to create icon:", err?.message);
+    // Even without a tray icon, honour the "minimize to tray" intent: hide on
+    // close so the app keeps running. The user can quit from the menu/process.
+    trayEnabled = true;
   }
 }
 

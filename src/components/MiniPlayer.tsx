@@ -2,6 +2,7 @@ import { useStore } from "../store/store";
 import { useT } from "../lib/i18n";
 import { formatTime } from "../lib/format";
 import { Slider } from "./common";
+import { LoopButton } from "./LoopButton";
 
 /**
  * Compact transport bar used when the user activates the mini player. The
@@ -77,6 +78,7 @@ export function MiniPlayer() {
         >
           ⏭
         </button>
+        <LoopButton />
         <span className="mini__time">
           {formatTime(status.currentSec)} / {formatTime(duration)}
         </span>
