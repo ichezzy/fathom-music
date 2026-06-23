@@ -63,7 +63,7 @@ export type EffectPlayback =
   | { mode: "once" }
   | { mode: "interval"; minSeconds: number; maxSeconds: number };
 
-export type Language = "de" | "en";
+export type Language = "en" | "de" | "fr" | "es" | "it";
 
 export interface AppSettings {
   language: Language;
@@ -72,6 +72,9 @@ export interface AppSettings {
   autoOpenLastCampaign: boolean;
   /** `MediaDeviceInfo.deviceId` for output; "" means the system default. */
   audioOutputDeviceId: string;
+  /** User overrides for hotkey bindings (KeyboardEvent.code per action id).
+   * Missing entries use the built-in defaults from src/lib/hotkeys.ts. */
+  hotkeys?: Record<string, string>;
 }
 
 export interface MixerState {
