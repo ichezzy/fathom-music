@@ -63,7 +63,7 @@ export type EffectPlayback =
   | { mode: "once" }
   | { mode: "interval"; minSeconds: number; maxSeconds: number };
 
-export type Language = "de" | "en";
+export type Language = "en" | "de" | "fr" | "es" | "it";
 
 export interface AppSettings {
   language: Language;

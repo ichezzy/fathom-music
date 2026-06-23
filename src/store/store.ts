@@ -42,7 +42,7 @@ const DEFAULT_MIXER: MixerState = {
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
-  language: "de",
+  language: "en",
   autoOpenLastCampaign: false,
   audioOutputDeviceId: "",
 };
