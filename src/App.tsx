@@ -9,10 +9,12 @@ import { AmbientSection } from "./components/AmbientSection";
 import { SoundboardSection } from "./components/SoundboardSection";
 import { NowPlayingBar } from "./components/NowPlayingBar";
 import { UpdateBanner } from "./components/UpdateBanner";
+import { MiniPlayer } from "./components/MiniPlayer";
 
 export function App() {
   const ready = useStore((s) => s.ready);
   const view = useStore((s) => s.view);
+  const mini = useStore((s) => s.miniPlayer);
   const hydrate = useStore((s) => s.hydrate);
   const initEngines = useStore((s) => s.initEngines);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -81,6 +83,8 @@ export function App() {
 
       {!ready ? (
         <div className="boot">Lade…</div>
+      ) : mini ? (
+        <MiniPlayer />
       ) : view === "menu" ? (
         <MainMenu />
       ) : (

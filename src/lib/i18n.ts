@@ -132,6 +132,16 @@ const de: Dict = {
   "settings.autoOpen": "Letzte Kampagne direkt öffnen",
   "settings.autoOpenHint":
     "Statt ins Hauptmenü springt die App direkt in die zuletzt geöffnete Kampagne.",
+  "settings.window": "Fenster",
+  "settings.confirmDelete": "Löschen bestätigen",
+  "settings.confirmDeleteHint":
+    "Vor dem Löschen von Tracks, Sounds, Effekten und Playlists nachfragen.",
+  "settings.minimizeToTray": "In den Tray minimieren",
+  "settings.minimizeToTrayHint":
+    "Beim Schließen wird das Fenster in das Infobereich-Symbol minimiert, statt die App zu beenden.",
+  "common.delete.confirm": "Wirklich löschen?",
+  "miniPlayer.toggle": "Mini-Modus",
+  "miniPlayer.expand": "Vollansicht",
   "settings.update": "Updates",
   "settings.checkUpdates": "Nach Updates suchen",
   "settings.update.checking": "Suche…",
@@ -280,6 +290,16 @@ const en: Dict = {
   "settings.autoOpen": "Open last campaign automatically",
   "settings.autoOpenHint":
     "Skip the main menu and jump straight back into the campaign you last opened.",
+  "settings.window": "Window",
+  "settings.confirmDelete": "Confirm before deleting",
+  "settings.confirmDeleteHint":
+    "Ask for confirmation before removing tracks, sounds, effects and playlists.",
+  "settings.minimizeToTray": "Minimize to tray",
+  "settings.minimizeToTrayHint":
+    "Closing the window hides it to the system tray instead of quitting the app.",
+  "common.delete.confirm": "Delete?",
+  "miniPlayer.toggle": "Mini mode",
+  "miniPlayer.expand": "Full view",
   "settings.update": "Updates",
   "settings.checkUpdates": "Check for updates",
   "settings.update.checking": "Checking…",

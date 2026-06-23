@@ -32,6 +32,8 @@ export interface DesktopBridge {
   onUpdateDownloaded(
     callback: (payload: { version: string | null }) => void,
   ): () => void;
+  setMiniPlayer(on: boolean): Promise<void>;
+  setTrayEnabled(on: boolean): Promise<void>;
   storage?: StorageBridge;
 }
 

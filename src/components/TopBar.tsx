@@ -10,6 +10,8 @@ export function TopBar() {
   const mixer = useStore((s) => s.mixer);
   const setMixer = useStore((s) => s.setMixer);
   const setView = useStore((s) => s.setView);
+  const setMiniPlayer = useStore((s) => s.setMiniPlayer);
+  const showMini = Boolean(desktop);
   const campaignName = useStore(
     (s) => s.campaigns.find((c) => c.id === s.activeCampaignId)?.name ?? "",
   );
@@ -79,14 +81,26 @@ export function TopBar() {
         </div>
       </div>
 
-      <button
-        className="icon-btn topbar__settings"
-        title={t("settings.open")}
-        aria-label={t("settings.open")}
-        onClick={() => setSettingsOpen(true)}
-      >
-        ⚙
-      </button>
+      <div className="topbar__actions">
+        {showMini && (
+          <button
+            className="icon-btn"
+            title={t("miniPlayer.toggle")}
+            aria-label={t("miniPlayer.toggle")}
+            onClick={() => setMiniPlayer(true)}
+          >
+            ▭
+          </button>
+        )}
+        <button
+          className="icon-btn topbar__settings"
+          title={t("settings.open")}
+          aria-label={t("settings.open")}
+          onClick={() => setSettingsOpen(true)}
+        >
+          ⚙
+        </button>
+      </div>
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </header>

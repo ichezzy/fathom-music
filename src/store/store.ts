@@ -14,6 +14,7 @@ import type {
   Track,
 } from "../types";
 import { uid, parseYouTubeId } from "../lib/id";
+import { desktop as desktopBridge } from "../lib/desktop";
 import {
   clearAllFiles,
   deleteFile,
@@ -45,6 +46,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   language: "en",
   autoOpenLastCampaign: false,
   audioOutputDeviceId: "",
+  confirmBeforeDelete: true,
+  minimizeToTray: false,
 };
 
 const DEFAULT_PLAYBACK: EffectPlayback = { mode: "once" };
@@ -170,8 +173,10 @@ interface StoreState {
 
   // Navigation
   view: "menu" | "campaign";
+  miniPlayer: boolean;
   setView: (view: "menu" | "campaign") => void;
   openCampaign: (id: string) => void;
+  setMiniPlayer: (on: boolean) => void;
 
   // Campaigns
   createCampaign: (name: string, icon?: string, color?: string) => string | null;
@@ -325,11 +330,16 @@ export const useStore = create<StoreState>((set, get) => ({
   ambientActiveIds: [],
   soundboardLoopingIds: [],
   view: "menu",
+  miniPlayer: false,
 
   setView: (view) => set({ view }),
   openCampaign: (id) => {
     get().setActiveCampaign(id);
     set({ view: "campaign" });
+  },
+  setMiniPlayer: (on) => {
+    set({ miniPlayer: on });
+    void desktopBridge?.setMiniPlayer(on);
   },
 
   hydrate: async () => {
@@ -355,6 +365,8 @@ export const useStore = create<StoreState>((set, get) => ({
       view: settings.autoOpenLastCampaign ? "campaign" : "menu",
       ready: true,
     });
+    // Sync runtime-only flags into the main process (tray, etc.).
+    void desktopBridge?.setTrayEnabled(settings.minimizeToTray);
     // If we just upgraded an older single-library save, write the v3 shape now
     // so the Standard campaign keeps a stable id from here on.
     const wasV3 = Array.isArray((saved as Partial<PersistedState>)?.campaigns);
@@ -815,6 +827,9 @@ export const useStore = create<StoreState>((set, get) => ({
 
   setSetting: (key, value) => {
     set((s) => ({ settings: { ...s.settings, [key]: value } }));
+    if (key === "minimizeToTray") {
+      void desktopBridge?.setTrayEnabled(value as boolean);
+    }
     schedulePersist(get);
   },
 

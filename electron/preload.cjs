@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld("tavernloops", {
     ipcRenderer.on("update:downloaded", handler);
     return () => ipcRenderer.removeListener("update:downloaded", handler);
   },
+  setMiniPlayer: (on) => ipcRenderer.invoke("window:setMini", !!on),
+  setTrayEnabled: (on) => ipcRenderer.invoke("tray:setEnabled", !!on),
   storage: {
     loadState: () => ipcRenderer.invoke("storage:loadState"),
     saveState: (state) => ipcRenderer.invoke("storage:saveState", state),

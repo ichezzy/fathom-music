@@ -57,6 +57,8 @@ function GeneralTab() {
   const t = useT();
   const language = useStore((s) => s.settings.language);
   const autoOpen = useStore((s) => s.settings.autoOpenLastCampaign);
+  const confirmDel = useStore((s) => s.settings.confirmBeforeDelete);
+  const minToTray = useStore((s) => s.settings.minimizeToTray);
   const setLanguage = useStore((s) => s.setLanguage);
   const setSetting = useStore((s) => s.setSetting);
 
@@ -88,6 +90,32 @@ function GeneralTab() {
         </button>
         <p className="field__hint">{t("settings.autoOpenHint")}</p>
       </div>
+
+      <div className="field">
+        <span>{t("common.delete.confirm")}</span>
+        <button
+          className={`toggle${confirmDel ? " is-on" : ""}`}
+          onClick={() => setSetting("confirmBeforeDelete", !confirmDel)}
+        >
+          <span className="toggle__dot" />
+          {t("settings.confirmDelete")}
+        </button>
+        <p className="field__hint">{t("settings.confirmDeleteHint")}</p>
+      </div>
+
+      {desktop && (
+        <div className="field">
+          <span>{t("settings.window")}</span>
+          <button
+            className={`toggle${minToTray ? " is-on" : ""}`}
+            onClick={() => setSetting("minimizeToTray", !minToTray)}
+          >
+            <span className="toggle__dot" />
+            {t("settings.minimizeToTray")}
+          </button>
+          <p className="field__hint">{t("settings.minimizeToTrayHint")}</p>
+        </div>
+      )}
     </>
   );
 }

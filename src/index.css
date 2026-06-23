@@ -1212,6 +1212,68 @@ input[type="text"]:focus {
   text-align: center;
 }
 
+/* ---------- Mini player ---------- */
+.mini {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 10px 12px;
+  gap: 6px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+}
+.mini__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mini__row--bottom {
+  flex: 1;
+}
+.mini__meta {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.mini__icon {
+  font-size: 22px;
+}
+.mini__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mini__title {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini__sub {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini__time {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+.mini__vol {
+  flex: 1;
+  min-width: 120px;
+}
+
+.topbar__actions {
+  display: flex;
+  gap: 4px;
+}
+
 /* ---------- Update banner ---------- */
 .update-banner {
   display: flex;

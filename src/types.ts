@@ -75,6 +75,10 @@ export interface AppSettings {
   /** User overrides for hotkey bindings (KeyboardEvent.code per action id).
    * Missing entries use the built-in defaults from src/lib/hotkeys.ts. */
   hotkeys?: Record<string, string>;
+  /** Ask for confirmation before deleting tracks/sounds/effects/playlists. */
+  confirmBeforeDelete: boolean;
+  /** Show a tray icon and hide the window on close instead of quitting. */
+  minimizeToTray: boolean;
 }
 
 export interface MixerState {
