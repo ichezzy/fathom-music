@@ -1,7 +1,7 @@
 {
   "name": "tavernloops",
   "private": true,
-  "version": "0.2.4",
+  "version": "0.2.5",
   "type": "module",
   "description": "Music, ambience and sound-effects controller for tabletop RPG game masters.",
   "author": "ichezzy",
@@ -38,7 +38,7 @@
   "build": {
     "appId": "com.ichezzy.tavernloops",
     "productName": "TavernLoops",
-    "files": ["dist/**", "electron/**"],
+    "files": ["dist/**", "electron/**", "build/icon.png"],
     "directories": {
       "output": "release",
       "buildResources": "build"

@@ -1,6 +1,7 @@
 import { useStore } from "../store/store";
 import { formatTime } from "../lib/format";
 import { useT } from "../lib/i18n";
+import { LoopButton } from "./LoopButton";
 
 export function NowPlayingBar() {
   const t = useT();
@@ -60,6 +61,7 @@ export function NowPlayingBar() {
         >
           ⏭
         </button>
+        <LoopButton />
       </div>
 
       <div className="nowplaying__progress">
