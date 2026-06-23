@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { AMBIENT_ICONS } from "../lib/format";
 import { useT } from "../lib/i18n";
+import { confirmDelete } from "../lib/confirm";
 import { EditableText, IconPicker, Modal, Slider } from "./common";
 
 export function AmbientSection() {
@@ -57,7 +58,9 @@ export function AmbientSection() {
               <button
                 className="icon-btn icon-btn--mini ambient-tile__del"
                 title={t("ambient.delete")}
-                onClick={() => void deleteAmbient(sound.id)}
+                onClick={() => {
+                  if (confirmDelete(sound.name)) void deleteAmbient(sound.id);
+                }}
               >
                 🗑
               </button>

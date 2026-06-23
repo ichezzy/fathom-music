@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { SFX_COLORS, SFX_ICONS } from "../lib/format";
 import { useT } from "../lib/i18n";
+import { confirmDelete } from "../lib/confirm";
 import type { EffectPlayback, SoundEffect } from "../types";
 import { ColorPicker, EditableText, IconPicker, Modal, Slider } from "./common";
 
@@ -68,7 +69,9 @@ export function SoundboardSection() {
                   <button
                     className="icon-btn icon-btn--mini"
                     title={t("sfx.delete")}
-                    onClick={() => void deleteEffect(effect.id)}
+                    onClick={() => {
+                      if (confirmDelete(effect.name)) void deleteEffect(effect.id);
+                    }}
                   >
                     🗑
                   </button>

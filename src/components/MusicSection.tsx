@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import type { RepeatMode } from "../types";
 import { useT } from "../lib/i18n";
+import { confirmDelete } from "../lib/confirm";
 import { EditableText } from "./common";
 
 export function MusicSection() {
@@ -114,6 +115,9 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
 
   const onRemoveTrack = (index: number) => {
     const trackId = playlist.trackIds[index];
+    const trackName =
+      useStore.getState().tracks[trackId]?.title ?? "";
+    if (!confirmDelete(trackName)) return;
     removeTrackFromPlaylist(playlist.id, index);
     // Drop the track entirely if no playlist references it anymore.
     const stillUsed = useStore
@@ -141,7 +145,9 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
           <button
             className="icon-btn"
             title={t("music.deletePlaylist")}
-            onClick={() => deletePlaylist(playlist.id)}
+            onClick={() => {
+              if (confirmDelete(playlist.name)) deletePlaylist(playlist.id);
+            }}
           >
             🗑
           </button>
