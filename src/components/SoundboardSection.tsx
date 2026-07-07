@@ -70,7 +70,9 @@ export function SoundboardSection() {
                     className="icon-btn icon-btn--mini"
                     title={t("sfx.delete")}
                     onClick={() => {
-                      if (confirmDelete(effect.name)) void deleteEffect(effect.id);
+                      void confirmDelete(effect.name).then((ok) => {
+                        if (ok) void deleteEffect(effect.id);
+                      });
                     }}
                   >
                     🗑

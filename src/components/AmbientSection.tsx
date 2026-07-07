@@ -59,7 +59,9 @@ export function AmbientSection() {
                 className="icon-btn icon-btn--mini ambient-tile__del"
                 title={t("ambient.delete")}
                 onClick={() => {
-                  if (confirmDelete(sound.name)) void deleteAmbient(sound.id);
+                  void confirmDelete(sound.name).then((ok) => {
+                    if (ok) void deleteAmbient(sound.id);
+                  });
                 }}
               >
                 🗑
