@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { desktop } from "../lib/desktop";
 import { LANGUAGES, useT } from "../lib/i18n";
+import { askConfirm } from "../lib/confirm";
 import {
   HOTKEY_ACTIONS,
   HOTKEY_LABEL_KEYS,
@@ -285,7 +286,7 @@ function BackupTab() {
 
   const onImportFile = async (file: File | undefined) => {
     if (!file) return;
-    if (!window.confirm(t("settings.backup.importConfirm"))) return;
+    if (!(await askConfirm(t("settings.backup.importConfirm")))) return;
     setError(null);
     setBusy("import");
     try {

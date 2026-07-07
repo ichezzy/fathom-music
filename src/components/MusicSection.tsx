@@ -113,11 +113,11 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
   const setRepeat = (mode: RepeatMode) =>
     updatePlaylist(playlist.id, { repeat: mode });
 
-  const onRemoveTrack = (index: number) => {
+  const onRemoveTrack = async (index: number) => {
     const trackId = playlist.trackIds[index];
     const trackName =
       useStore.getState().tracks[trackId]?.title ?? "";
-    if (!confirmDelete(trackName)) return;
+    if (!(await confirmDelete(trackName))) return;
     removeTrackFromPlaylist(playlist.id, index);
     // Drop the track entirely if no playlist references it anymore.
     const stillUsed = useStore
@@ -146,7 +146,9 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
             className="icon-btn"
             title={t("music.deletePlaylist")}
             onClick={() => {
-              if (confirmDelete(playlist.name)) deletePlaylist(playlist.id);
+              void confirmDelete(playlist.name).then((ok) => {
+                if (ok) deletePlaylist(playlist.id);
+              });
             }}
           >
             🗑
@@ -310,7 +312,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               <button
                 className="icon-btn icon-btn--mini"
                 title={t("music.remove")}
-                onClick={() => onRemoveTrack(index)}
+                onClick={() => void onRemoveTrack(index)}
               >
                 ✕
               </button>

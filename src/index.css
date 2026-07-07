@@ -1272,6 +1272,43 @@ input[type="text"]:focus {
   min-width: 140px;
 }
 
+/* ---------- Confirm dialog ---------- */
+.confirm__detail {
+  margin: 0 0 16px;
+  color: var(--muted);
+  word-break: break-word;
+}
+.confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+}
+.btn--danger:hover {
+  filter: brightness(1.15);
+}
+
+/* ---------- Editable campaign name in topbar ---------- */
+.brand__campaign {
+  cursor: text;
+  border-radius: 4px;
+}
+.brand__campaign:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.brand__campaign--input {
+  font: inherit;
+  color: inherit;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  padding: 1px 6px;
+  outline: none;
+}
+
 /* ---------- Loop button ---------- */
 .loop-btn.is-on {
   color: var(--gold);

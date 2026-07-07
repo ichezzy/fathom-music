@@ -166,6 +166,8 @@ interface StoreState {
   activePlaylistId: string | null;
   ambientActiveIds: string[];
   soundboardLoopingIds: string[];
+  /** Pending in-app confirmation (see src/lib/confirm.ts). */
+  confirmRequest: { message: string; detail: string | null } | null;
 
   // Lifecycle
   hydrate: () => Promise<void>;
@@ -329,6 +331,7 @@ export const useStore = create<StoreState>((set, get) => ({
   activePlaylistId: null,
   ambientActiveIds: [],
   soundboardLoopingIds: [],
+  confirmRequest: null,
   view: "menu",
   miniPlayer: false,
 

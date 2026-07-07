@@ -3,6 +3,7 @@ import { useStore } from "../store/store";
 import { useT } from "../lib/i18n";
 import { CAMPAIGN_COLORS, CAMPAIGN_ICONS } from "../lib/format";
 import { desktop } from "../lib/desktop";
+import { askConfirm } from "../lib/confirm";
 import type { Campaign } from "../types";
 import {
   ColorPicker,
@@ -45,9 +46,9 @@ export function MainMenu() {
       : { playlists: c.playlists.length, sounds: c.ambient.length + c.soundboard.length };
 
   const onDelete = (c: Campaign) => {
-    if (window.confirm(t("menu.deleteConfirm", { name: c.name }))) {
-      void deleteCampaign(c.id);
-    }
+    void askConfirm(t("menu.deleteConfirm", { name: c.name })).then((ok) => {
+      if (ok) void deleteCampaign(c.id);
+    });
   };
 
   return (

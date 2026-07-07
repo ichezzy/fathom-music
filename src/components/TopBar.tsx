@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useStore } from "../store/store";
 import { desktop } from "../lib/desktop";
 import { useT } from "../lib/i18n";
-import { Slider } from "./common";
+import { EditableText, Slider } from "./common";
 import { SettingsModal } from "./SettingsModal";
 
 export function TopBar() {
@@ -11,6 +11,8 @@ export function TopBar() {
   const setMixer = useStore((s) => s.setMixer);
   const setView = useStore((s) => s.setView);
   const setMiniPlayer = useStore((s) => s.setMiniPlayer);
+  const renameCampaign = useStore((s) => s.renameCampaign);
+  const activeCampaignId = useStore((s) => s.activeCampaignId);
   const showMini = Boolean(desktop);
   const campaignName = useStore(
     (s) => s.campaigns.find((c) => c.id === s.activeCampaignId)?.name ?? "",
@@ -44,7 +46,17 @@ export function TopBar() {
         <div>
           <h1>TavernLoops</h1>
           <p>
-            {campaignName || t("app.subtitle")}
+            {campaignName ? (
+              <EditableText
+                className="brand__campaign"
+                inputClassName="brand__campaign brand__campaign--input"
+                value={campaignName}
+                title={t("music.renameHint")}
+                onSubmit={(next) => renameCampaign(activeCampaignId, next)}
+              />
+            ) : (
+              t("app.subtitle")
+            )}
             {version && <span className="brand__version">v{version}</span>}
           </p>
         </div>

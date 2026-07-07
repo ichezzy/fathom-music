@@ -10,6 +10,7 @@ import { SoundboardSection } from "./components/SoundboardSection";
 import { NowPlayingBar } from "./components/NowPlayingBar";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { MiniPlayer } from "./components/MiniPlayer";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -35,7 +36,7 @@ export function App() {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const s = useStore.getState();
-      if (!s.ready || s.view !== "campaign") return;
+      if (!s.ready || s.view !== "campaign" || s.confirmRequest) return;
       const el = document.activeElement as HTMLElement | null;
       if (
         el &&
@@ -100,6 +101,8 @@ export function App() {
           <NowPlayingBar />
         </>
       )}
+
+      <ConfirmDialog />
 
       {/* Hidden host for <audio> + YouTube iframes */}
       <div
