@@ -1078,6 +1078,63 @@ input[type="text"]:focus {
   padding: 6px 8px;
 }
 
+/* ---------- Sound groups ---------- */
+.sound-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sound-section__sep {
+  height: 1px;
+  background: var(--line);
+  margin: 10px 0 2px;
+}
+.group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+.group-head__name {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gold);
+  cursor: text;
+  border-radius: 4px;
+}
+.group-head--muted .group-head__name {
+  color: var(--muted);
+}
+.group-head__name--input {
+  font: inherit;
+  color: inherit;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.group-head__actions {
+  display: flex;
+  gap: 2px;
+}
+.tile-group-select {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: inherit;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+.empty--mini {
+  opacity: 0.4;
+  padding: 4px;
+  margin: 0;
+}
+
 /* ---------- Reorder controls ---------- */
 .playlist-list__row {
   display: flex;
