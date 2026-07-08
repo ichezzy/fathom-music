@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useStore } from "./store/store";
 import { actionFor } from "./lib/hotkeys";
 import type { HotkeyAction } from "./lib/hotkeys";
-import { TopBar } from "./components/TopBar";
+import { Sidebar } from "./components/Sidebar";
 import { MainMenu } from "./components/MainMenu";
 import { MusicSection } from "./components/MusicSection";
 import { AmbientSection } from "./components/AmbientSection";
@@ -102,14 +102,18 @@ export function App() {
         <MainMenu />
       ) : (
         <>
-          <TopBar />
-          <main className="layout">
-            <MusicSection />
-            <div className="layout__side">
-              <AmbientSection />
-              <SoundboardSection />
+          <div className="shell">
+            <Sidebar />
+            <div className="content">
+              <main className="layout">
+                <MusicSection />
+                <div className="layout__side">
+                  <AmbientSection />
+                  <SoundboardSection />
+                </div>
+              </main>
             </div>
-          </main>
+          </div>
           <NowPlayingBar />
           <QueuePanel />
         </>
