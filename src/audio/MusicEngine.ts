@@ -8,6 +8,8 @@ export interface MusicStatus {
   playing: boolean;
   durationSec: number;
   currentSec: number;
+  /** Ordered track ids as they will play (index `position` is current). */
+  queue: string[];
 }
 
 export interface MusicEngineCallbacks {
@@ -94,6 +96,12 @@ export class MusicEngine {
     return idx === undefined ? null : (this.tracks[idx] ?? null);
   }
 
+  private queueIds(): string[] {
+    return this.order
+      .map((i) => this.tracks[i]?.id)
+      .filter((id): id is string => Boolean(id));
+  }
+
   private emit(): void {
     this.cb.onStatus?.({
       trackId: this.currentTrack()?.id ?? null,
@@ -101,7 +109,51 @@ export class MusicEngine {
       playing: this.playing,
       durationSec: this.durationSec,
       currentSec: this.currentSec,
+      queue: this.queueIds(),
     });
+  }
+
+  /** Append a track to the end of the play order. */
+  enqueue(track: Track): void {
+    this.tracks = [...this.tracks, track];
+    this.order = [...this.order, this.tracks.length - 1];
+    this.emit();
+  }
+
+  /** Insert a track to play right after the current one. */
+  enqueueNext(track: Track): void {
+    this.tracks = [...this.tracks, track];
+    const at = this.position + 1;
+    this.order = [
+      ...this.order.slice(0, at),
+      this.tracks.length - 1,
+      ...this.order.slice(at),
+    ];
+    this.emit();
+  }
+
+  /** Remove an upcoming entry by its index in the play order. */
+  removeFromQueue(orderIndex: number): void {
+    if (orderIndex <= this.position || orderIndex >= this.order.length) return;
+    this.order = this.order.filter((_, i) => i !== orderIndex);
+    this.emit();
+  }
+
+  /** Reorder two upcoming entries (both must be after the current one). */
+  moveInQueue(from: number, to: number): void {
+    if (from <= this.position || to <= this.position) return;
+    if (from >= this.order.length || to >= this.order.length) return;
+    const order = [...this.order];
+    const [moved] = order.splice(from, 1);
+    order.splice(to, 0, moved);
+    this.order = order;
+    this.emit();
+  }
+
+  /** Drop everything queued after the current track. */
+  clearUpcoming(): void {
+    this.order = this.order.slice(0, this.position + 1);
+    this.emit();
   }
 
   setOutputScale(scale: number): void {

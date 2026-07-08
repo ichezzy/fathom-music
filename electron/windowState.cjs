@@ -53,27 +53,35 @@ function save(bounds) {
   }
 }
 
+/** Snapshot the window's *restored* bounds plus its maximized flag. */
+function snapshot(win) {
+  const b = win.getNormalBounds ? win.getNormalBounds() : win.getBounds();
+  return { ...b, maximized: win.isMaximized() };
+}
+
 /** Wire a BrowserWindow so its bounds are persisted on resize/move/close. */
 function attach(win) {
   // Track only the "normal" bounds; ignore changes while the user is in
   // the mini player (the renderer flips this flag via IPC).
   let suspended = false;
   let timer = null;
-  let last = win.getBounds();
+  let last = snapshot(win);
 
   const schedule = () => {
     if (suspended || win.isDestroyed() || win.isMinimized()) return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      last = win.getBounds();
+      last = snapshot(win);
       save(last);
     }, 400);
   };
 
   win.on("resize", schedule);
   win.on("move", schedule);
+  win.on("maximize", schedule);
+  win.on("unmaximize", schedule);
   win.on("close", () => {
-    if (!suspended && !win.isMinimized()) save(win.getBounds());
+    if (!suspended && !win.isMinimized()) save(snapshot(win));
     else save(last);
   });
 
@@ -81,7 +89,7 @@ function attach(win) {
     suspend() {
       // Remember the last full bounds before something temporary (mini
       // player) shrinks the window.
-      last = win.getBounds();
+      last = snapshot(win);
       suspended = true;
     },
     resume() {

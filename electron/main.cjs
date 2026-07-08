@@ -53,23 +53,42 @@ async function loadRenderer() {
   }
 }
 
+// Height of our custom title bar strip (must match .titlebar in CSS).
+const TITLEBAR_HEIGHT = 34;
+
 function createWindow() {
   const saved = windowState.load();
-  mainWindow = new BrowserWindow({
+  const options = {
     width: saved.width,
     height: saved.height,
     x: saved.x,
     y: saved.y,
     minWidth: windowState.MIN.width,
     minHeight: windowState.MIN.height,
-    backgroundColor: "#14110e",
+    backgroundColor: "#0a1826",
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
     },
-  });
+  };
+
+  // On Windows, drop the native frame; the renderer draws its own title bar
+  // and control buttons (frameless "pro" look). Left framed on Linux/macOS.
+  // Alt+F4 / taskbar close still work, so a mis-wired button can't lock anyone
+  // out of the window.
+  if (process.platform === "win32") {
+    options.frame = false;
+  }
+
+  mainWindow = new BrowserWindow(options);
+  if (saved.maximized) mainWindow.maximize();
+
+  const sendMaximized = () =>
+    mainWindow?.webContents.send("window:maximized", mainWindow.isMaximized());
+  mainWindow.on("maximize", sendMaximized);
+  mainWindow.on("unmaximize", sendMaximized);
 
   stateMgr = windowState.attach(mainWindow);
 
@@ -241,6 +260,17 @@ ipcMain.handle("tray:setEnabled", (_e, enabled) => {
 });
 
 // ---- App version / updates ----
+
+// ---- Custom window controls (frameless title bar) ----
+ipcMain.handle("window:minimize", () => mainWindow?.minimize());
+ipcMain.handle("window:maximizeToggle", () => {
+  if (!mainWindow) return false;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+  return mainWindow.isMaximized();
+});
+ipcMain.handle("window:close", () => mainWindow?.close());
+ipcMain.handle("window:isMaximized", () => mainWindow?.isMaximized() ?? false);
 
 ipcMain.handle("app:getVersion", () => app.getVersion());
 ipcMain.handle("update:check", async () => {

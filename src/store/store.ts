@@ -59,6 +59,7 @@ const blankStatus: MusicStatus = {
   playing: false,
   durationSec: 0,
   currentSec: 0,
+  queue: [],
 };
 
 const EMPTY_DATA: CampaignData = {
@@ -217,6 +218,16 @@ interface StoreState {
   next: () => void;
   previous: () => void;
   seek: (sec: number) => void;
+
+  // Play queue
+  queueOpen: boolean;
+  setQueueOpen: (open: boolean) => void;
+  enqueueTrack: (trackId: string) => void;
+  playTrackNext: (trackId: string) => void;
+  removeFromQueue: (orderIndex: number) => void;
+  moveInQueue: (from: number, to: number) => void;
+  jumpToQueueIndex: (orderIndex: number) => void;
+  clearQueue: () => void;
   setRepeat: (mode: RepeatMode) => void;
   toggleCrossfade: () => void;
   setCrossfadeSeconds: (sec: number) => void;
@@ -371,6 +382,7 @@ export const useStore = create<StoreState>((set, get) => ({
   confirmRequest: null,
   view: "menu",
   miniPlayer: false,
+  queueOpen: false,
 
   setView: (view) => set({ view }),
   openCampaign: (id) => {
@@ -700,6 +712,30 @@ export const useStore = create<StoreState>((set, get) => ({
   seek: (sec) => {
     get().music?.seek(sec);
   },
+
+  setQueueOpen: (open) => set({ queueOpen: open }),
+  enqueueTrack: (trackId) => {
+    const track = get().tracks[trackId];
+    const music = get().music;
+    if (!track || !music) return;
+    void get().soundboard_engine?.unlock();
+    const wasEmpty = get().status.queue.length === 0;
+    music.enqueue(track);
+    if (wasEmpty) void music.playPosition(0);
+  },
+  playTrackNext: (trackId) => {
+    const track = get().tracks[trackId];
+    const music = get().music;
+    if (!track || !music) return;
+    void get().soundboard_engine?.unlock();
+    const wasEmpty = get().status.queue.length === 0;
+    music.enqueueNext(track);
+    if (wasEmpty) void music.playPosition(0);
+  },
+  removeFromQueue: (orderIndex) => get().music?.removeFromQueue(orderIndex),
+  moveInQueue: (from, to) => get().music?.moveInQueue(from, to),
+  jumpToQueueIndex: (orderIndex) => void get().music?.playPosition(orderIndex),
+  clearQueue: () => get().music?.clearUpcoming(),
 
   setRepeat: (mode) => {
     const id = get().activePlaylistId;

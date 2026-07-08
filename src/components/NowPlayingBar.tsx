@@ -16,6 +16,8 @@ export function NowPlayingBar() {
   const next = useStore((s) => s.next);
   const previous = useStore((s) => s.previous);
   const seek = useStore((s) => s.seek);
+  const setQueueOpen = useStore((s) => s.setQueueOpen);
+  const queueOpen = useStore((s) => s.queueOpen);
 
   const hasTrack = Boolean(track);
   const duration = status.durationSec || 0;
@@ -62,6 +64,14 @@ export function NowPlayingBar() {
           ⏭
         </button>
         <LoopButton />
+        <button
+          className={`icon-btn${queueOpen ? " is-on" : ""}`}
+          title={t("queue.open")}
+          aria-label={t("queue.open")}
+          onClick={() => setQueueOpen(!queueOpen)}
+        >
+          ☰
+        </button>
       </div>
 
       <div className="nowplaying__progress">

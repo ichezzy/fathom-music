@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("tavernloops", {
+  platform: process.platform,
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
   checkForUpdates: () => ipcRenderer.invoke("update:check"),
   installUpdate: () => ipcRenderer.invoke("update:install"),
@@ -11,6 +12,17 @@ contextBridge.exposeInMainWorld("tavernloops", {
   },
   setMiniPlayer: (on) => ipcRenderer.invoke("window:setMini", !!on),
   setTrayEnabled: (on) => ipcRenderer.invoke("tray:setEnabled", !!on),
+  windowControls: {
+    minimize: () => ipcRenderer.invoke("window:minimize"),
+    maximizeToggle: () => ipcRenderer.invoke("window:maximizeToggle"),
+    close: () => ipcRenderer.invoke("window:close"),
+    isMaximized: () => ipcRenderer.invoke("window:isMaximized"),
+    onMaximizeChange: (callback) => {
+      const handler = (_event, isMax) => callback(!!isMax);
+      ipcRenderer.on("window:maximized", handler);
+      return () => ipcRenderer.removeListener("window:maximized", handler);
+    },
+  },
   storage: {
     loadState: () => ipcRenderer.invoke("storage:loadState"),
     saveState: (state) => ipcRenderer.invoke("storage:saveState", state),

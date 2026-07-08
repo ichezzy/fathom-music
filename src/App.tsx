@@ -11,6 +11,9 @@ import { NowPlayingBar } from "./components/NowPlayingBar";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { ConfirmDialog } from "./components/ConfirmDialog";
+import { TitleBar } from "./components/TitleBar";
+import { QueuePanel } from "./components/QueuePanel";
+import { desktop } from "./lib/desktop";
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -78,8 +81,17 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // The OS caption-button overlay is only active on Windows; the custom title
+  // bar strip goes with it. Never in the mini player (it has no room for it).
+  const showTitleBar = desktop?.platform === "win32" && !mini;
+
   return (
-    <div className="app">
+    <div
+      className={`app${showTitleBar ? " app--titlebar" : ""}${
+        mini ? " app--mini" : ""
+      }`}
+    >
+      {showTitleBar && <TitleBar />}
       <UpdateBanner />
 
       {!ready ? (
@@ -99,6 +111,7 @@ export function App() {
             </div>
           </main>
           <NowPlayingBar />
+          <QueuePanel />
         </>
       )}
 
