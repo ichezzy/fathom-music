@@ -162,7 +162,7 @@ ipcMain.handle("window:setMini", (_e, on) => {
 function buildTrayMenu() {
   return Menu.buildFromTemplate([
     {
-      label: "Show TavernLoops",
+      label: "Show Fathom Music",
       click: () => {
         mainWindow?.show();
         mainWindow?.focus();
@@ -212,7 +212,7 @@ function enableTray() {
       console.warn("[tray] icon file not found; using empty image");
     }
     trayIcon = new Tray(image);
-    trayIcon.setToolTip("TavernLoops");
+    trayIcon.setToolTip("Fathom Music");
     trayIcon.setContextMenu(buildTrayMenu());
     trayIcon.on("click", () => {
       if (mainWindow?.isVisible()) mainWindow.hide();

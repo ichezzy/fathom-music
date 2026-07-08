@@ -35,14 +35,12 @@ export function AmbientSection() {
               {t("group.add")}
             </button>
           )}
-          {(ambient.length > 1 || groups.length > 0) && (
-            <button
-              className={`btn btn--small btn--ghost${editing ? " is-on" : ""}`}
-              onClick={() => setEditing((v) => !v)}
-            >
-              {editing ? t("common.done") : t("common.edit")}
-            </button>
-          )}
+          <button
+            className={`btn btn--small btn--ghost${editing ? " is-on" : ""}`}
+            onClick={() => setEditing((v) => !v)}
+          >
+            {editing ? t("common.done") : t("common.edit")}
+          </button>
           <button className="btn btn--small" onClick={() => setAdding(true)}>
             {t("ambient.addSound")}
           </button>

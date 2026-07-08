@@ -42,9 +42,9 @@ export function TopBar() {
         >
           ←
         </button>
-        <span className="brand__mark">🍻</span>
+        <span className="brand__mark">🌊</span>
         <div>
-          <h1>TavernLoops</h1>
+          <h1>Fathom Music</h1>
           <p>
             {campaignName ? (
               <EditableText

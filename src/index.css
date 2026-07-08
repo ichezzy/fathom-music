@@ -1,18 +1,20 @@
 :root {
-  --bg: #14110e;
-  --bg-2: #1d1813;
-  --panel: #241d16;
-  --panel-2: #2c241b;
-  --line: #3a2f23;
-  --text: #f0e6d6;
-  --muted: #b6a890;
-  --ember: #d9772e;
-  --ember-2: #f0a14b;
-  --gold: #d9b160;
-  --green: #4f9d6b;
-  --danger: #b4452f;
+  /* Fathom "deep dive" palette — abyssal blues + bioluminescent teal. */
+  --bg: #060f18;
+  --bg-2: #0a1826;
+  --panel: #0e2133;
+  --panel-2: #133048;
+  --line: #1d3a52;
+  --text: #e8f3f8;
+  --muted: #8bb0c4;
+  /* --ember / --gold kept as variable names for compatibility, re-hued to sea. */
+  --ember: #1c8fb0;
+  --ember-2: #38b6d6;
+  --gold: #57d6e6;
+  --green: #3fbfa2;
+  --danger: #c85a4a;
   --radius: 12px;
-  --shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --shadow: 0 8px 26px rgba(0, 8, 16, 0.55);
   color-scheme: dark;
 }
 
@@ -28,9 +30,11 @@ body,
 
 body {
   margin: 0;
+  /* Light filtering down from the surface, fading into the deep. */
   background:
-    radial-gradient(1200px 600px at 80% -10%, #2a2018 0%, transparent 60%),
-    var(--bg);
+    radial-gradient(1100px 640px at 50% -20%, rgba(56, 182, 214, 0.14) 0%, transparent 62%),
+    linear-gradient(180deg, #0a1a28 0%, var(--bg) 70%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
@@ -1296,7 +1300,7 @@ input[type="text"]:focus {
   height: 100vh;
   padding: 14px 18px;
   gap: 12px;
-  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  background: linear-gradient(180deg, var(--panel), var(--bg-2));
   box-sizing: border-box;
 }
 .mini__row {

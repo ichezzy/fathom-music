@@ -389,7 +389,7 @@ function AboutTab() {
       <div className="field">
         <span>{t("settings.about")}</span>
         <p className="field__hint">
-          TavernLoops · {t("settings.version")}{" "}
+          Fathom Music · {t("settings.version")}{" "}
           {version ?? t("settings.web")}
         </p>
       </div>

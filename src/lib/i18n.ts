@@ -12,7 +12,7 @@ export const LANGUAGES: { code: Language; label: string }[] = [
 type Dict = Record<string, string>;
 
 const de: Dict = {
-  "app.subtitle": "TTRPG Audio Console",
+  "app.subtitle": "Tauche in deine Welt ein",
   "mixer.master": "Master",
   "mixer.music": "Musik",
   "mixer.ambient": "Ambient",
@@ -185,7 +185,7 @@ const de: Dict = {
 };
 
 const en: Dict = {
-  "app.subtitle": "TTRPG Audio Console",
+  "app.subtitle": "Dive into your world",
   "mixer.master": "Master",
   "mixer.music": "Music",
   "mixer.ambient": "Ambient",

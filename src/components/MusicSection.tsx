@@ -25,14 +25,12 @@ export function MusicSection() {
       <div className="panel__head">
         <h2>🎵 {t("music.title")}</h2>
         <div className="panel__head-actions">
-          {playlists.length > 1 && (
-            <button
-              className={`btn btn--small btn--ghost${editing ? " is-on" : ""}`}
-              onClick={() => setEditing((v) => !v)}
-            >
-              {editing ? t("common.done") : t("common.edit")}
-            </button>
-          )}
+          <button
+            className={`btn btn--small btn--ghost${editing ? " is-on" : ""}`}
+            onClick={() => setEditing((v) => !v)}
+          >
+            {editing ? t("common.done") : t("common.edit")}
+          </button>
           <button
             className="btn btn--small"
             onClick={() => {
