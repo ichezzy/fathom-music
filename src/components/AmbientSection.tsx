@@ -6,6 +6,7 @@ import { confirmDelete, askConfirm } from "../lib/confirm";
 import { sectionize } from "../lib/grouping";
 import type { AmbientSound } from "../types";
 import { GroupHeader } from "./GroupHeader";
+import { Icon } from "./Icon";
 import { EditableText, IconPicker, Modal, Slider } from "./common";
 
 export function AmbientSection() {
@@ -180,7 +181,7 @@ function AmbientTile({
               disabled={!canUp}
               onClick={() => prevIndex !== undefined && moveAmbient(flatIndex, prevIndex)}
             >
-              ◀
+              <Icon name="chevronLeft" size={13} />
             </button>
             <button
               className="icon-btn icon-btn--mini"
@@ -188,14 +189,14 @@ function AmbientTile({
               disabled={!canDown}
               onClick={() => nextIndex !== undefined && moveAmbient(flatIndex, nextIndex)}
             >
-              ▶
+              <Icon name="chevronRight" size={13} />
             </button>
             <button
               className="icon-btn icon-btn--mini ambient-tile__del"
               title={t("ambient.delete")}
               onClick={onDelete}
             >
-              🗑
+              <Icon name="trash" size={13} />
             </button>
           </div>
         </>
@@ -205,7 +206,7 @@ function AmbientTile({
           title={t("ambient.delete")}
           onClick={onDelete}
         >
-          🗑
+          <Icon name="trash" size={13} />
         </button>
       )}
     </div>

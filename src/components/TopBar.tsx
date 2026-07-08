@@ -4,6 +4,7 @@ import { desktop } from "../lib/desktop";
 import { useT } from "../lib/i18n";
 import { EditableText, Slider } from "./common";
 import { SettingsModal } from "./SettingsModal";
+import { Icon } from "./Icon";
 
 export function TopBar() {
   const t = useT();
@@ -40,7 +41,7 @@ export function TopBar() {
           aria-label={t("menu.back")}
           onClick={() => setView("menu")}
         >
-          ←
+          <Icon name="back" />
         </button>
         <span className="brand__mark">🌊</span>
         <div>
@@ -101,7 +102,7 @@ export function TopBar() {
             aria-label={t("miniPlayer.toggle")}
             onClick={() => setMiniPlayer(true)}
           >
-            ▭
+            <Icon name="mini" />
           </button>
         )}
         <button
@@ -110,7 +111,7 @@ export function TopBar() {
           aria-label={t("settings.open")}
           onClick={() => setSettingsOpen(true)}
         >
-          ⚙
+          <Icon name="settings" />
         </button>
       </div>
 

@@ -4,6 +4,7 @@ import type { RepeatMode } from "../types";
 import { useT } from "../lib/i18n";
 import { confirmDelete } from "../lib/confirm";
 import { EditableText } from "./common";
+import { Icon } from "./Icon";
 
 export function MusicSection() {
   const t = useT();
@@ -69,7 +70,7 @@ export function MusicSection() {
                     disabled={index === 0}
                     onClick={() => movePlaylist(index, index - 1)}
                   >
-                    ▲
+                    <Icon name="chevronUp" size={13} />
                   </button>
                   <button
                     className="icon-btn icon-btn--mini"
@@ -77,7 +78,7 @@ export function MusicSection() {
                     disabled={index === playlists.length - 1}
                     onClick={() => movePlaylist(index, index + 1)}
                   >
-                    ▼
+                    <Icon name="chevronDown" size={13} />
                   </button>
                 </span>
               )}
@@ -182,7 +183,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               });
             }}
           >
-            🗑
+            <Icon name="trash" size={16} />
           </button>
         </div>
       </div>
@@ -308,7 +309,10 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                 onClick={() => void playPlaylist(playlist.id, index)}
                 title={t("music.playThis")}
               >
-                {isCurrent && status.playing ? "♪" : "▶"}
+                <Icon
+                  name={isCurrent && status.playing ? "pause" : "play"}
+                  size={13}
+                />
               </button>
               <EditableText
                 className="tracklist__title tracklist__title--editable"
@@ -325,7 +329,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                 title={t("queue.add")}
                 onClick={() => enqueueTrack(trackId)}
               >
-                ＋
+                <Icon name="plus" size={13} />
               </button>
               <span className="tracklist__order">
                 <button
@@ -335,7 +339,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                     moveTrackInPlaylist(playlist.id, index, index - 1)
                   }
                 >
-                  ▲
+                  <Icon name="chevronUp" size={13} />
                 </button>
                 <button
                   className="icon-btn icon-btn--mini"
@@ -344,7 +348,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                     moveTrackInPlaylist(playlist.id, index, index + 1)
                   }
                 >
-                  ▼
+                  <Icon name="chevronDown" size={13} />
                 </button>
               </span>
               <button
@@ -352,7 +356,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                 title={t("music.remove")}
                 onClick={() => void onRemoveTrack(index)}
               >
-                ✕
+                <Icon name="close" size={13} />
               </button>
             </li>
           );

@@ -2,6 +2,7 @@ import { useStore } from "../store/store";
 import { formatTime } from "../lib/format";
 import { useT } from "../lib/i18n";
 import { LoopButton } from "./LoopButton";
+import { Icon } from "./Icon";
 
 export function NowPlayingBar() {
   const t = useT();
@@ -45,7 +46,7 @@ export function NowPlayingBar() {
           disabled={!hasTrack}
           aria-label={t("now.prev")}
         >
-          ⏮
+          <Icon name="prev" />
         </button>
         <button
           className="icon-btn icon-btn--play"
@@ -53,7 +54,7 @@ export function NowPlayingBar() {
           disabled={!hasTrack}
           aria-label={status.playing ? "Pause" : "Play"}
         >
-          {status.playing ? "⏸" : "▶"}
+          <Icon name={status.playing ? "pause" : "play"} size={22} />
         </button>
         <button
           className="icon-btn"
@@ -61,7 +62,7 @@ export function NowPlayingBar() {
           disabled={!hasTrack}
           aria-label={t("now.next")}
         >
-          ⏭
+          <Icon name="next" />
         </button>
         <LoopButton />
         <button
@@ -70,7 +71,7 @@ export function NowPlayingBar() {
           aria-label={t("queue.open")}
           onClick={() => setQueueOpen(!queueOpen)}
         >
-          ☰
+          <Icon name="queue" />
         </button>
       </div>
 

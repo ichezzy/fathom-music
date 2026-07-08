@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { Icon } from "./Icon";
 
 interface SliderProps {
   value: number; // 0..1
@@ -54,8 +55,8 @@ export function Modal({ title, onClose, children }: ModalProps) {
       >
         <div className="modal__head">
           <h2>{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label="Schließen">
-            ✕
+          <button className="icon-btn" onClick={onClose} aria-label="Close">
+            <Icon name="close" size={16} />
           </button>
         </div>
         <div className="modal__body">{children}</div>
