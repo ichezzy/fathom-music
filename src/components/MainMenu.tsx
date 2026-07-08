@@ -63,8 +63,8 @@ export function MainMenu() {
       </button>
 
       <header className="menu__head">
-        <span className="menu__mark">🍻</span>
-        <h1>TavernLoops</h1>
+        <span className="menu__mark">🌊</span>
+        <h1>Fathom Music</h1>
         <p>{t("menu.subtitle")}</p>
       </header>
 
