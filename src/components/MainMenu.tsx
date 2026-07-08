@@ -4,6 +4,7 @@ import { useT } from "../lib/i18n";
 import { CAMPAIGN_COLORS, CAMPAIGN_ICONS } from "../lib/format";
 import { desktop } from "../lib/desktop";
 import { askConfirm } from "../lib/confirm";
+import { Icon } from "./Icon";
 import type { Campaign } from "../types";
 import {
   ColorPicker,
@@ -59,7 +60,7 @@ export function MainMenu() {
         aria-label={t("settings.open")}
         onClick={() => setSettingsOpen(true)}
       >
-        ⚙
+        <Icon name="settings" />
       </button>
 
       <header className="menu__head">
@@ -119,7 +120,7 @@ export function MainMenu() {
                   title={t("menu.delete")}
                   onClick={() => onDelete(c)}
                 >
-                  🗑
+                  <Icon name="trash" size={14} />
                 </button>
               )}
             </li>
@@ -132,7 +133,9 @@ export function MainMenu() {
               className="campaign-row campaign-row--new"
               onClick={() => setCreating(true)}
             >
-              <span className="campaign-row__plus">＋</span>
+              <span className="campaign-row__plus">
+              <Icon name="plus" size={22} />
+            </span>
               <span>{t("menu.new")}</span>
             </button>
           </li>

@@ -6,6 +6,7 @@ import { confirmDelete, askConfirm } from "../lib/confirm";
 import { sectionize } from "../lib/grouping";
 import type { EffectPlayback, SoundEffect } from "../types";
 import { GroupHeader } from "./GroupHeader";
+import { Icon } from "./Icon";
 import { ColorPicker, EditableText, IconPicker, Modal, Slider } from "./common";
 
 export function SoundboardSection() {
@@ -184,7 +185,7 @@ function Pad({
                 prevIndex !== undefined && moveEffect(flatIndex, prevIndex)
               }
             >
-              ◀
+              <Icon name="chevronLeft" size={13} />
             </button>
             <button
               className="icon-btn icon-btn--mini"
@@ -194,7 +195,7 @@ function Pad({
                 nextIndex !== undefined && moveEffect(flatIndex, nextIndex)
               }
             >
-              ▶
+              <Icon name="chevronRight" size={13} />
             </button>
             <button
               className="icon-btn icon-btn--mini"
@@ -205,7 +206,7 @@ function Pad({
                 )
               }
             >
-              🗑
+              <Icon name="trash" size={13} />
             </button>
           </div>
         </div>

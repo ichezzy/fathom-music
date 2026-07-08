@@ -1,6 +1,7 @@
 import { useT } from "../lib/i18n";
 import type { SoundGroup } from "../types";
 import { EditableText } from "./common";
+import { Icon } from "./Icon";
 
 /**
  * Header row for a group section (shared by ambient + soundboard). For the
@@ -52,7 +53,7 @@ export function GroupHeader({
             disabled={groupIndex <= 0}
             onClick={() => onMove(-1)}
           >
-            ▲
+            <Icon name="chevronUp" size={13} />
           </button>
           <button
             className="icon-btn icon-btn--mini"
@@ -60,14 +61,14 @@ export function GroupHeader({
             disabled={groupIndex >= groupCount - 1}
             onClick={() => onMove(1)}
           >
-            ▼
+            <Icon name="chevronDown" size={13} />
           </button>
           <button
             className="icon-btn icon-btn--mini"
             title={t("group.delete")}
             onClick={onDelete}
           >
-            🗑
+            <Icon name="trash" size={13} />
           </button>
         </span>
       )}

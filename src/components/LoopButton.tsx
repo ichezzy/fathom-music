@@ -1,17 +1,12 @@
 import { useStore } from "../store/store";
 import { useT } from "../lib/i18n";
 import type { RepeatMode } from "../types";
+import { Icon } from "./Icon";
 
 const NEXT: Record<RepeatMode, RepeatMode> = {
   off: "all",
   all: "one",
   one: "off",
-};
-
-const GLYPH: Record<RepeatMode, string> = {
-  off: "🔁",
-  all: "🔁",
-  one: "🔂",
 };
 
 /**
@@ -51,7 +46,7 @@ export function LoopButton({ small = false }: { small?: boolean }) {
       title={label}
       aria-label={label}
     >
-      {GLYPH[mode]}
+      <Icon name={mode === "one" ? "repeatOne" : "repeat"} />
     </button>
   );
 }

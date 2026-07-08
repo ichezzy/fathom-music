@@ -3,6 +3,7 @@ import { useT } from "../lib/i18n";
 import { formatTime } from "../lib/format";
 import { Slider } from "./common";
 import { LoopButton } from "./LoopButton";
+import { Icon } from "./Icon";
 
 /**
  * Compact transport bar used when the user activates the mini player. The
@@ -49,7 +50,7 @@ export function MiniPlayer() {
           title={t("miniPlayer.expand")}
           onClick={() => setMiniPlayer(false)}
         >
-          ⛶
+          <Icon name="expand" />
         </button>
       </div>
 
@@ -60,7 +61,7 @@ export function MiniPlayer() {
           disabled={!hasTrack}
           aria-label={t("now.prev")}
         >
-          ⏮
+          <Icon name="prev" />
         </button>
         <button
           className="icon-btn icon-btn--play"
@@ -68,7 +69,7 @@ export function MiniPlayer() {
           disabled={!hasTrack}
           aria-label={status.playing ? "Pause" : "Play"}
         >
-          {status.playing ? "⏸" : "▶"}
+          <Icon name={status.playing ? "pause" : "play"} size={22} />
         </button>
         <button
           className="icon-btn"
@@ -76,7 +77,7 @@ export function MiniPlayer() {
           disabled={!hasTrack}
           aria-label={t("now.next")}
         >
-          ⏭
+          <Icon name="next" />
         </button>
         <LoopButton />
         <span className="mini__time">
