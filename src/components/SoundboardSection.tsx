@@ -2,27 +2,39 @@ import { useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { SFX_COLORS, SFX_ICONS } from "../lib/format";
 import { useT } from "../lib/i18n";
-import { confirmDelete } from "../lib/confirm";
+import { confirmDelete, askConfirm } from "../lib/confirm";
+import { sectionize } from "../lib/grouping";
 import type { EffectPlayback, SoundEffect } from "../types";
+import { GroupHeader } from "./GroupHeader";
 import { ColorPicker, EditableText, IconPicker, Modal, Slider } from "./common";
 
 export function SoundboardSection() {
   const t = useT();
   const soundboard = useStore((s) => s.soundboard);
-  const loopingIds = useStore((s) => s.soundboardLoopingIds);
-  const playEffect = useStore((s) => s.playEffect);
-  const deleteEffect = useStore((s) => s.deleteEffect);
-  const setEffectVolume = useStore((s) => s.setEffectVolume);
-  const renameEffect = useStore((s) => s.renameEffect);
+  const groups = useStore((s) => s.soundboardGroups);
+  const createGroup = useStore((s) => s.createSoundboardGroup);
+  const renameGroup = useStore((s) => s.renameSoundboardGroup);
+  const deleteGroup = useStore((s) => s.deleteSoundboardGroup);
+  const moveGroup = useStore((s) => s.moveSoundboardGroup);
 
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(false);
+
+  const sections = sectionize(soundboard, groups);
 
   return (
     <section className="panel soundboard">
       <div className="panel__head">
         <h2>🔊 {t("sfx.title")}</h2>
         <div className="panel__head-actions">
+          {editing && (
+            <button
+              className="btn btn--small btn--ghost"
+              onClick={() => createGroup(t("group.new"))}
+            >
+              {t("group.add")}
+            </button>
+          )}
           <button
             className={`btn btn--small btn--ghost${editing ? " is-on" : ""}`}
             onClick={() => setEditing((v) => !v)}
@@ -35,57 +47,170 @@ export function SoundboardSection() {
         </div>
       </div>
 
-      <div className="soundboard__grid">
-        {soundboard.length === 0 && <p className="empty">{t("sfx.empty")}</p>}
-        {soundboard.map((effect) => {
-          const looping = loopingIds.includes(effect.id);
-          return (
-            <div key={effect.id} className="pad-wrap">
-              <button
-                className={`pad${looping ? " is-looping" : ""}`}
-                style={{ background: effect.color }}
-                onClick={() => playEffect(effect.id)}
-              >
-                <span className="pad__icon">{effect.icon}</span>
-                <EditableText
-                  className="pad__name"
-                  inputClassName="pad__name pad__name--input"
-                  value={effect.name}
-                  title={t("music.renameHint")}
-                  onSubmit={(next) => renameEffect(effect.id, next)}
+      {soundboard.length === 0 && groups.length === 0 ? (
+        <p className="empty">{t("sfx.empty")}</p>
+      ) : (
+        sections.map((section, si) => (
+          <div key={section.group?.id ?? "__ungrouped"} className="sound-section">
+            {(groups.length > 0 || section.group) && (
+              <GroupHeader
+                group={section.group}
+                editing={editing}
+                groupIndex={
+                  section.group
+                    ? groups.findIndex((g) => g.id === section.group!.id)
+                    : -1
+                }
+                groupCount={groups.length}
+                onRename={(name) =>
+                  section.group && renameGroup(section.group.id, name)
+                }
+                onMove={(dir) => {
+                  const idx = groups.findIndex((g) => g.id === section.group?.id);
+                  if (idx >= 0) moveGroup(idx, idx + dir);
+                }}
+                onDelete={() => {
+                  const g = section.group;
+                  if (!g) return;
+                  void askConfirm(
+                    t("group.deleteConfirm", { name: g.name }),
+                  ).then((ok) => ok && deleteGroup(g.id));
+                }}
+              />
+            )}
+            <div className="soundboard__grid">
+              {section.entries.map((entry, pos) => (
+                <Pad
+                  key={entry.item.id}
+                  effect={entry.item}
+                  flatIndex={entry.index}
+                  editing={editing}
+                  canUp={pos > 0}
+                  canDown={pos < section.entries.length - 1}
+                  prevIndex={section.entries[pos - 1]?.index}
+                  nextIndex={section.entries[pos + 1]?.index}
                 />
-                {effect.playback.mode === "interval" && (
-                  <span className="pad__loop-badge">⟳</span>
-                )}
-              </button>
-              {editing && (
-                <div className="pad__edit">
-                  <Slider
-                    value={effect.volume}
-                    ariaLabel={effect.name}
-                    onChange={(v) => setEffectVolume(effect.id, v)}
-                  />
-                  <PlaybackEditor effect={effect} />
-                  <button
-                    className="icon-btn icon-btn--mini"
-                    title={t("sfx.delete")}
-                    onClick={() => {
-                      void confirmDelete(effect.name).then((ok) => {
-                        if (ok) void deleteEffect(effect.id);
-                      });
-                    }}
-                  >
-                    🗑
-                  </button>
-                </div>
+              ))}
+              {section.entries.length === 0 && (
+                <p className="empty empty--mini">·</p>
               )}
             </div>
-          );
-        })}
-      </div>
+            {si < sections.length - 1 && <div className="sound-section__sep" />}
+          </div>
+        ))
+      )}
 
       {adding && <AddEffectModal onClose={() => setAdding(false)} />}
     </section>
+  );
+}
+
+function Pad({
+  effect,
+  flatIndex,
+  editing,
+  canUp,
+  canDown,
+  prevIndex,
+  nextIndex,
+}: {
+  effect: SoundEffect;
+  flatIndex: number;
+  editing: boolean;
+  canUp: boolean;
+  canDown: boolean;
+  prevIndex?: number;
+  nextIndex?: number;
+}) {
+  const t = useT();
+  const groups = useStore((s) => s.soundboardGroups);
+  const looping = useStore((s) => s.soundboardLoopingIds.includes(effect.id));
+  const playEffect = useStore((s) => s.playEffect);
+  const deleteEffect = useStore((s) => s.deleteEffect);
+  const moveEffect = useStore((s) => s.moveEffect);
+  const setEffectVolume = useStore((s) => s.setEffectVolume);
+  const renameEffect = useStore((s) => s.renameEffect);
+  const setEffectGroup = useStore((s) => s.setEffectGroup);
+
+  return (
+    <div className="pad-wrap">
+      <button
+        className={`pad${looping ? " is-looping" : ""}`}
+        style={{ background: effect.color }}
+        onClick={() => playEffect(effect.id)}
+      >
+        <span className="pad__icon">{effect.icon}</span>
+        <EditableText
+          className="pad__name"
+          inputClassName="pad__name pad__name--input"
+          value={effect.name}
+          title={t("music.renameHint")}
+          onSubmit={(next) => renameEffect(effect.id, next)}
+        />
+        {effect.playback.mode === "interval" && (
+          <span className="pad__loop-badge">⟳</span>
+        )}
+      </button>
+      {editing && (
+        <div className="pad__edit">
+          <Slider
+            value={effect.volume}
+            ariaLabel={effect.name}
+            onChange={(v) => setEffectVolume(effect.id, v)}
+          />
+          <PlaybackEditor effect={effect} />
+          {groups.length > 0 && (
+            <select
+              className="tile-group-select"
+              value={effect.groupId ?? ""}
+              onChange={(e) =>
+                setEffectGroup(effect.id, e.target.value || undefined)
+              }
+            >
+              <option value="">{t("group.none")}</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="pad__order">
+            <button
+              className="icon-btn icon-btn--mini"
+              title={t("common.moveUp")}
+              disabled={!canUp}
+              onClick={() =>
+                prevIndex !== undefined && moveEffect(flatIndex, prevIndex)
+              }
+            >
+              ◀
+            </button>
+            <button
+              className="icon-btn icon-btn--mini"
+              title={t("common.moveDown")}
+              disabled={!canDown}
+              onClick={() =>
+                nextIndex !== undefined && moveEffect(flatIndex, nextIndex)
+              }
+            >
+              ▶
+            </button>
+            <button
+              className="icon-btn icon-btn--mini"
+              title={t("sfx.delete")}
+              onClick={() =>
+                void confirmDelete(effect.name).then(
+                  (ok) => ok && void deleteEffect(effect.id),
+                )
+              }
+            >
+              🗑
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

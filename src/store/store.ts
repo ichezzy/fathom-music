@@ -11,6 +11,7 @@ import type {
   Playlist,
   RepeatMode,
   SoundEffect,
+  SoundGroup,
   Track,
 } from "../types";
 import { uid, parseYouTubeId } from "../lib/id";
@@ -65,6 +66,8 @@ const EMPTY_DATA: CampaignData = {
   playlists: [],
   ambient: [],
   soundboard: [],
+  ambientGroups: [],
+  soundboardGroups: [],
 };
 
 function makeCampaign(
@@ -80,6 +83,8 @@ function makeCampaign(
     playlists: data?.playlists ?? [],
     ambient: data?.ambient ?? [],
     soundboard: data?.soundboard ?? [],
+    ambientGroups: data?.ambientGroups ?? [],
+    soundboardGroups: data?.soundboardGroups ?? [],
   };
 }
 
@@ -98,6 +103,8 @@ function normalizeCampaign(c: Partial<Campaign>): Campaign {
       ...e,
       playback: e.playback ?? DEFAULT_PLAYBACK,
     })),
+    ambientGroups: c.ambientGroups ?? [],
+    soundboardGroups: c.soundboardGroups ?? [],
   };
 }
 
@@ -156,6 +163,8 @@ interface StoreState {
   playlists: Playlist[];
   ambient: AmbientSound[];
   soundboard: SoundEffect[];
+  ambientGroups: SoundGroup[];
+  soundboardGroups: SoundGroup[];
 
   // Runtime / non-persisted
   ready: boolean;
@@ -196,6 +205,7 @@ interface StoreState {
   createPlaylist: (name: string) => string;
   renamePlaylist: (id: string, name: string) => void;
   deletePlaylist: (id: string) => void;
+  movePlaylist: (from: number, to: number) => void;
   addTrackToPlaylist: (playlistId: string, trackId: string) => void;
   removeTrackFromPlaylist: (playlistId: string, index: number) => void;
   moveTrackInPlaylist: (playlistId: string, from: number, to: number) => void;
@@ -217,8 +227,15 @@ interface StoreState {
   addAmbientYouTube: (url: string, name: string, icon: string) => boolean;
   renameAmbient: (id: string, name: string) => void;
   deleteAmbient: (id: string) => Promise<void>;
+  moveAmbient: (from: number, to: number) => void;
   toggleAmbient: (id: string) => void;
   setAmbientVolume: (id: string, volume: number) => void;
+  // Ambient groups
+  createAmbientGroup: (name: string) => string;
+  renameAmbientGroup: (id: string, name: string) => void;
+  deleteAmbientGroup: (id: string) => void;
+  moveAmbientGroup: (from: number, to: number) => void;
+  setAmbientGroup: (soundId: string, groupId: string | undefined) => void;
 
   // Soundboard
   addEffect: (
@@ -230,8 +247,15 @@ interface StoreState {
   renameEffect: (id: string, name: string) => void;
   setEffectPlayback: (id: string, playback: EffectPlayback) => void;
   deleteEffect: (id: string) => Promise<void>;
+  moveEffect: (from: number, to: number) => void;
   setEffectVolume: (id: string, volume: number) => void;
   playEffect: (id: string) => void;
+  // Soundboard groups
+  createSoundboardGroup: (name: string) => string;
+  renameSoundboardGroup: (id: string, name: string) => void;
+  deleteSoundboardGroup: (id: string) => void;
+  moveSoundboardGroup: (from: number, to: number) => void;
+  setEffectGroup: (effectId: string, groupId: string | undefined) => void;
 
   // Mixer
   setMixer: (patch: Partial<MixerState>) => void;
@@ -246,6 +270,15 @@ interface StoreState {
   importBackup: (file: File) => Promise<void>;
 }
 
+/** Immutable array move (out-of-range is a no-op). */
+function arrayMove<T>(arr: T[], from: number, to: number): T[] {
+  if (from < 0 || from >= arr.length || to < 0 || to >= arr.length) return arr;
+  const copy = [...arr];
+  const [moved] = copy.splice(from, 1);
+  copy.splice(to, 0, moved);
+  return copy;
+}
+
 /** Campaign list with the active campaign refreshed from the live mirror. */
 function foldActive(s: StoreState): Campaign[] {
   return s.campaigns.map((c) =>
@@ -256,6 +289,8 @@ function foldActive(s: StoreState): Campaign[] {
           playlists: s.playlists,
           ambient: s.ambient,
           soundboard: s.soundboard,
+          ambientGroups: s.ambientGroups,
+          soundboardGroups: s.soundboardGroups,
         }
       : c,
   );
@@ -322,6 +357,8 @@ export const useStore = create<StoreState>((set, get) => ({
   playlists: [],
   ambient: [],
   soundboard: [],
+  ambientGroups: [],
+  soundboardGroups: [],
 
   ready: false,
   music: null,
@@ -362,6 +399,8 @@ export const useStore = create<StoreState>((set, get) => ({
       playlists: active.playlists,
       ambient: active.ambient,
       soundboard: active.soundboard,
+      ambientGroups: active.ambientGroups,
+      soundboardGroups: active.soundboardGroups,
       mixer: { ...DEFAULT_MIXER, ...(savedRaw?.mixer ?? {}) },
       settings,
       // Skip the menu and go straight back into the last campaign, if asked.
@@ -419,6 +458,8 @@ export const useStore = create<StoreState>((set, get) => ({
         playlists: fallback.playlists,
         ambient: fallback.ambient,
         soundboard: fallback.soundboard,
+        ambientGroups: fallback.ambientGroups,
+        soundboardGroups: fallback.soundboardGroups,
         activePlaylistId: null,
         status: blankStatus,
         ambientActiveIds: [],
@@ -448,6 +489,8 @@ export const useStore = create<StoreState>((set, get) => ({
       playlists: target.playlists,
       ambient: target.ambient,
       soundboard: target.soundboard,
+      ambientGroups: target.ambientGroups,
+      soundboardGroups: target.soundboardGroups,
       activePlaylistId: null,
       status: blankStatus,
       ambientActiveIds: [],
@@ -571,6 +614,11 @@ export const useStore = create<StoreState>((set, get) => ({
       playlists: s.playlists.filter((pl) => pl.id !== id),
       activePlaylistId: s.activePlaylistId === id ? null : s.activePlaylistId,
     }));
+    schedulePersist(get);
+  },
+
+  movePlaylist: (from, to) => {
+    set((s) => ({ playlists: arrayMove(s.playlists, from, to) }));
     schedulePersist(get);
   },
 
@@ -722,6 +770,50 @@ export const useStore = create<StoreState>((set, get) => ({
     schedulePersist(get);
   },
 
+  moveAmbient: (from, to) => {
+    set((s) => ({ ambient: arrayMove(s.ambient, from, to) }));
+    schedulePersist(get);
+  },
+
+  createAmbientGroup: (name) => {
+    const group: SoundGroup = { id: uid("agrp"), name: name.trim() || "Gruppe" };
+    set((s) => ({ ambientGroups: [...s.ambientGroups, group] }));
+    schedulePersist(get);
+    return group.id;
+  },
+  renameAmbientGroup: (id, name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set((s) => ({
+      ambientGroups: s.ambientGroups.map((g) =>
+        g.id === id ? { ...g, name: trimmed } : g,
+      ),
+    }));
+    schedulePersist(get);
+  },
+  deleteAmbientGroup: (id) => {
+    set((s) => ({
+      ambientGroups: s.ambientGroups.filter((g) => g.id !== id),
+      // Its sounds fall back to ungrouped.
+      ambient: s.ambient.map((a) =>
+        a.groupId === id ? { ...a, groupId: undefined } : a,
+      ),
+    }));
+    schedulePersist(get);
+  },
+  moveAmbientGroup: (from, to) => {
+    set((s) => ({ ambientGroups: arrayMove(s.ambientGroups, from, to) }));
+    schedulePersist(get);
+  },
+  setAmbientGroup: (soundId, groupId) => {
+    set((s) => ({
+      ambient: s.ambient.map((a) =>
+        a.id === soundId ? { ...a, groupId } : a,
+      ),
+    }));
+    schedulePersist(get);
+  },
+
   toggleAmbient: (id) => {
     const sound = get().ambient.find((a) => a.id === id);
     if (sound) void get().ambientEngine?.toggle(sound);
@@ -783,6 +875,49 @@ export const useStore = create<StoreState>((set, get) => ({
       const refs = referencedFileIds(get());
       if (!refs.has(effect.fileId)) await deleteFile(effect.fileId);
     }
+    schedulePersist(get);
+  },
+
+  moveEffect: (from, to) => {
+    set((s) => ({ soundboard: arrayMove(s.soundboard, from, to) }));
+    schedulePersist(get);
+  },
+
+  createSoundboardGroup: (name) => {
+    const group: SoundGroup = { id: uid("sgrp"), name: name.trim() || "Gruppe" };
+    set((s) => ({ soundboardGroups: [...s.soundboardGroups, group] }));
+    schedulePersist(get);
+    return group.id;
+  },
+  renameSoundboardGroup: (id, name) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set((s) => ({
+      soundboardGroups: s.soundboardGroups.map((g) =>
+        g.id === id ? { ...g, name: trimmed } : g,
+      ),
+    }));
+    schedulePersist(get);
+  },
+  deleteSoundboardGroup: (id) => {
+    set((s) => ({
+      soundboardGroups: s.soundboardGroups.filter((g) => g.id !== id),
+      soundboard: s.soundboard.map((e) =>
+        e.groupId === id ? { ...e, groupId: undefined } : e,
+      ),
+    }));
+    schedulePersist(get);
+  },
+  moveSoundboardGroup: (from, to) => {
+    set((s) => ({ soundboardGroups: arrayMove(s.soundboardGroups, from, to) }));
+    schedulePersist(get);
+  },
+  setEffectGroup: (effectId, groupId) => {
+    set((s) => ({
+      soundboard: s.soundboard.map((e) =>
+        e.id === effectId ? { ...e, groupId } : e,
+      ),
+    }));
     schedulePersist(get);
   },
 

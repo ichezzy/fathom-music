@@ -9,9 +9,11 @@ export function MusicSection() {
   const t = useT();
   const playlists = useStore((s) => s.playlists);
   const createPlaylist = useStore((s) => s.createPlaylist);
+  const movePlaylist = useStore((s) => s.movePlaylist);
   const activePlaylistId = useStore((s) => s.activePlaylistId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const effectiveId =
     (selectedId && playlists.some((p) => p.id === selectedId) && selectedId) ||
     activePlaylistId ||
@@ -22,15 +24,25 @@ export function MusicSection() {
     <section className="panel music">
       <div className="panel__head">
         <h2>🎵 {t("music.title")}</h2>
-        <button
-          className="btn btn--small"
-          onClick={() => {
-            const id = createPlaylist(t("music.newPlaylist"));
-            setSelectedId(id);
-          }}
-        >
-          {t("music.addPlaylist")}
-        </button>
+        <div className="panel__head-actions">
+          {playlists.length > 1 && (
+            <button
+              className={`btn btn--small btn--ghost${editing ? " is-on" : ""}`}
+              onClick={() => setEditing((v) => !v)}
+            >
+              {editing ? t("common.done") : t("common.edit")}
+            </button>
+          )}
+          <button
+            className="btn btn--small"
+            onClick={() => {
+              const id = createPlaylist(t("music.newPlaylist"));
+              setSelectedId(id);
+            }}
+          >
+            {t("music.addPlaylist")}
+          </button>
+        </div>
       </div>
 
       <div className="music__body">
@@ -38,8 +50,8 @@ export function MusicSection() {
           {playlists.length === 0 && (
             <li className="empty">{t("music.noPlaylists")}</li>
           )}
-          {playlists.map((pl) => (
-            <li key={pl.id}>
+          {playlists.map((pl, index) => (
+            <li key={pl.id} className="playlist-list__row">
               <button
                 className={`playlist-list__item${
                   pl.id === effectiveId ? " is-selected" : ""
@@ -51,6 +63,26 @@ export function MusicSection() {
                   {pl.trackIds.length}
                 </span>
               </button>
+              {editing && (
+                <span className="playlist-list__order">
+                  <button
+                    className="icon-btn icon-btn--mini"
+                    title={t("common.moveUp")}
+                    disabled={index === 0}
+                    onClick={() => movePlaylist(index, index - 1)}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    className="icon-btn icon-btn--mini"
+                    title={t("common.moveDown")}
+                    disabled={index === playlists.length - 1}
+                    onClick={() => movePlaylist(index, index + 1)}
+                  >
+                    ▼
+                  </button>
+                </span>
+              )}
             </li>
           ))}
         </ul>

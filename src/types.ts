@@ -27,6 +27,12 @@ export interface Playlist {
   shuffle: boolean;
 }
 
+/** A named section that ambient sounds / soundboard effects can be filed under. */
+export interface SoundGroup {
+  id: string;
+  name: string;
+}
+
 /** A long, looping background bed (cave, rain, tavern crowd, ...). */
 export interface AmbientSound {
   id: string;
@@ -36,6 +42,8 @@ export interface AmbientSound {
   source: AudioSource;
   /** Persisted per-channel volume 0..1. */
   volume: number;
+  /** Group this sound belongs to; undefined = ungrouped. */
+  groupId?: string;
 }
 
 /** A short one-shot effect on the soundboard. */
@@ -51,6 +59,8 @@ export interface SoundEffect {
   volume: number;
   /** How the pad behaves when triggered. */
   playback: EffectPlayback;
+  /** Group this effect belongs to; undefined = ungrouped. */
+  groupId?: string;
 }
 
 /**
@@ -94,6 +104,9 @@ export interface CampaignData {
   playlists: Playlist[];
   ambient: AmbientSound[];
   soundboard: SoundEffect[];
+  /** Optional named sections for the ambient / soundboard grids. */
+  ambientGroups: SoundGroup[];
+  soundboardGroups: SoundGroup[];
 }
 
 /** A named profile (e.g. "Standard", "Curse of Strahd") with its own library. */
