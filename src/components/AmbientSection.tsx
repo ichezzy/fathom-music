@@ -13,21 +13,33 @@ export function AmbientSection() {
   const setAmbientVolume = useStore((s) => s.setAmbientVolume);
   const deleteAmbient = useStore((s) => s.deleteAmbient);
   const renameAmbient = useStore((s) => s.renameAmbient);
+  const moveAmbient = useStore((s) => s.moveAmbient);
 
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   return (
     <section className="panel ambient">
       <div className="panel__head">
         <h2>🌫️ {t("ambient.title")}</h2>
-        <button className="btn btn--small" onClick={() => setAdding(true)}>
-          {t("ambient.addSound")}
-        </button>
+        <div className="panel__head-actions">
+          {ambient.length > 1 && (
+            <button
+              className={`btn btn--small btn--ghost${editing ? " is-on" : ""}`}
+              onClick={() => setEditing((v) => !v)}
+            >
+              {editing ? t("common.done") : t("common.edit")}
+            </button>
+          )}
+          <button className="btn btn--small" onClick={() => setAdding(true)}>
+            {t("ambient.addSound")}
+          </button>
+        </div>
       </div>
 
       <div className="ambient__grid">
         {ambient.length === 0 && <p className="empty">{t("ambient.empty")}</p>}
-        {ambient.map((sound) => {
+        {ambient.map((sound, index) => {
           const isOn = activeIds.includes(sound.id);
           return (
             <div
@@ -55,17 +67,49 @@ export function AmbientSection() {
                 ariaLabel={`${sound.name} Lautstärke`}
                 onChange={(v) => setAmbientVolume(sound.id, v)}
               />
-              <button
-                className="icon-btn icon-btn--mini ambient-tile__del"
-                title={t("ambient.delete")}
-                onClick={() => {
-                  void confirmDelete(sound.name).then((ok) => {
-                    if (ok) void deleteAmbient(sound.id);
-                  });
-                }}
-              >
-                🗑
-              </button>
+              {editing ? (
+                <div className="ambient-tile__edit">
+                  <button
+                    className="icon-btn icon-btn--mini"
+                    title={t("common.moveUp")}
+                    disabled={index === 0}
+                    onClick={() => moveAmbient(index, index - 1)}
+                  >
+                    ◀
+                  </button>
+                  <button
+                    className="icon-btn icon-btn--mini"
+                    title={t("common.moveDown")}
+                    disabled={index === ambient.length - 1}
+                    onClick={() => moveAmbient(index, index + 1)}
+                  >
+                    ▶
+                  </button>
+                  <button
+                    className="icon-btn icon-btn--mini ambient-tile__del"
+                    title={t("ambient.delete")}
+                    onClick={() => {
+                      void confirmDelete(sound.name).then((ok) => {
+                        if (ok) void deleteAmbient(sound.id);
+                      });
+                    }}
+                  >
+                    🗑
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="icon-btn icon-btn--mini ambient-tile__del"
+                  title={t("ambient.delete")}
+                  onClick={() => {
+                    void confirmDelete(sound.name).then((ok) => {
+                      if (ok) void deleteAmbient(sound.id);
+                    });
+                  }}
+                >
+                  🗑
+                </button>
+              )}
             </div>
           );
         })}

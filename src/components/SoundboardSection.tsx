@@ -12,6 +12,7 @@ export function SoundboardSection() {
   const loopingIds = useStore((s) => s.soundboardLoopingIds);
   const playEffect = useStore((s) => s.playEffect);
   const deleteEffect = useStore((s) => s.deleteEffect);
+  const moveEffect = useStore((s) => s.moveEffect);
   const setEffectVolume = useStore((s) => s.setEffectVolume);
   const renameEffect = useStore((s) => s.renameEffect);
 
@@ -37,7 +38,7 @@ export function SoundboardSection() {
 
       <div className="soundboard__grid">
         {soundboard.length === 0 && <p className="empty">{t("sfx.empty")}</p>}
-        {soundboard.map((effect) => {
+        {soundboard.map((effect, index) => {
           const looping = loopingIds.includes(effect.id);
           return (
             <div key={effect.id} className="pad-wrap">
@@ -66,17 +67,35 @@ export function SoundboardSection() {
                     onChange={(v) => setEffectVolume(effect.id, v)}
                   />
                   <PlaybackEditor effect={effect} />
-                  <button
-                    className="icon-btn icon-btn--mini"
-                    title={t("sfx.delete")}
-                    onClick={() => {
-                      void confirmDelete(effect.name).then((ok) => {
-                        if (ok) void deleteEffect(effect.id);
-                      });
-                    }}
-                  >
-                    🗑
-                  </button>
+                  <div className="pad__order">
+                    <button
+                      className="icon-btn icon-btn--mini"
+                      title={t("common.moveUp")}
+                      disabled={index === 0}
+                      onClick={() => moveEffect(index, index - 1)}
+                    >
+                      ◀
+                    </button>
+                    <button
+                      className="icon-btn icon-btn--mini"
+                      title={t("common.moveDown")}
+                      disabled={index === soundboard.length - 1}
+                      onClick={() => moveEffect(index, index + 1)}
+                    >
+                      ▶
+                    </button>
+                    <button
+                      className="icon-btn icon-btn--mini"
+                      title={t("sfx.delete")}
+                      onClick={() => {
+                        void confirmDelete(effect.name).then((ok) => {
+                          if (ok) void deleteEffect(effect.id);
+                        });
+                      }}
+                    >
+                      🗑
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

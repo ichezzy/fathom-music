@@ -196,6 +196,7 @@ interface StoreState {
   createPlaylist: (name: string) => string;
   renamePlaylist: (id: string, name: string) => void;
   deletePlaylist: (id: string) => void;
+  movePlaylist: (from: number, to: number) => void;
   addTrackToPlaylist: (playlistId: string, trackId: string) => void;
   removeTrackFromPlaylist: (playlistId: string, index: number) => void;
   moveTrackInPlaylist: (playlistId: string, from: number, to: number) => void;
@@ -217,6 +218,7 @@ interface StoreState {
   addAmbientYouTube: (url: string, name: string, icon: string) => boolean;
   renameAmbient: (id: string, name: string) => void;
   deleteAmbient: (id: string) => Promise<void>;
+  moveAmbient: (from: number, to: number) => void;
   toggleAmbient: (id: string) => void;
   setAmbientVolume: (id: string, volume: number) => void;
 
@@ -230,6 +232,7 @@ interface StoreState {
   renameEffect: (id: string, name: string) => void;
   setEffectPlayback: (id: string, playback: EffectPlayback) => void;
   deleteEffect: (id: string) => Promise<void>;
+  moveEffect: (from: number, to: number) => void;
   setEffectVolume: (id: string, volume: number) => void;
   playEffect: (id: string) => void;
 
@@ -244,6 +247,15 @@ interface StoreState {
   resetHotkeys: () => void;
   exportBackup: () => Promise<void>;
   importBackup: (file: File) => Promise<void>;
+}
+
+/** Immutable array move (out-of-range is a no-op). */
+function arrayMove<T>(arr: T[], from: number, to: number): T[] {
+  if (from < 0 || from >= arr.length || to < 0 || to >= arr.length) return arr;
+  const copy = [...arr];
+  const [moved] = copy.splice(from, 1);
+  copy.splice(to, 0, moved);
+  return copy;
 }
 
 /** Campaign list with the active campaign refreshed from the live mirror. */
@@ -574,6 +586,11 @@ export const useStore = create<StoreState>((set, get) => ({
     schedulePersist(get);
   },
 
+  movePlaylist: (from, to) => {
+    set((s) => ({ playlists: arrayMove(s.playlists, from, to) }));
+    schedulePersist(get);
+  },
+
   addTrackToPlaylist: (playlistId, trackId) => {
     set((s) => ({
       playlists: s.playlists.map((pl) =>
@@ -722,6 +739,11 @@ export const useStore = create<StoreState>((set, get) => ({
     schedulePersist(get);
   },
 
+  moveAmbient: (from, to) => {
+    set((s) => ({ ambient: arrayMove(s.ambient, from, to) }));
+    schedulePersist(get);
+  },
+
   toggleAmbient: (id) => {
     const sound = get().ambient.find((a) => a.id === id);
     if (sound) void get().ambientEngine?.toggle(sound);
@@ -783,6 +805,11 @@ export const useStore = create<StoreState>((set, get) => ({
       const refs = referencedFileIds(get());
       if (!refs.has(effect.fileId)) await deleteFile(effect.fileId);
     }
+    schedulePersist(get);
+  },
+
+  moveEffect: (from, to) => {
+    set((s) => ({ soundboard: arrayMove(s.soundboard, from, to) }));
     schedulePersist(get);
   },
 

@@ -1078,6 +1078,26 @@ input[type="text"]:focus {
   padding: 6px 8px;
 }
 
+/* ---------- Reorder controls ---------- */
+.playlist-list__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.playlist-list__row .playlist-list__item {
+  flex: 1;
+}
+.playlist-list__order,
+.ambient-tile__edit,
+.pad__order {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.ambient-tile__edit {
+  justify-content: center;
+}
+
 /* ---------- Track drag & drop ---------- */
 .tracklist__grip {
   cursor: grab;
