@@ -116,6 +116,7 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
   const renameTrack = useStore((s) => s.renameTrack);
   const addLocalTracks = useStore((s) => s.addLocalTracks);
   const addTrackToPlaylist = useStore((s) => s.addTrackToPlaylist);
+  const enqueueTrack = useStore((s) => s.enqueueTrack);
 
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
@@ -319,6 +320,13 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               <span className="tracklist__badge">
                 {track.source.kind === "youtube" ? "YT" : "MP3"}
               </span>
+              <button
+                className="icon-btn icon-btn--mini"
+                title={t("queue.add")}
+                onClick={() => enqueueTrack(trackId)}
+              >
+                ＋
+              </button>
               <span className="tracklist__order">
                 <button
                   className="icon-btn icon-btn--mini"

@@ -12,6 +12,7 @@ import { UpdateBanner } from "./components/UpdateBanner";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { TitleBar } from "./components/TitleBar";
+import { QueuePanel } from "./components/QueuePanel";
 import { desktop } from "./lib/desktop";
 
 export function App() {
@@ -110,6 +111,7 @@ export function App() {
             </div>
           </main>
           <NowPlayingBar />
+          <QueuePanel />
         </>
       )}
 
