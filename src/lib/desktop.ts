@@ -22,6 +22,7 @@ export interface StorageBridge {
 }
 
 export interface DesktopBridge {
+  platform?: string;
   getVersion(): Promise<string>;
   checkForUpdates(): Promise<{
     status: "ok" | "dev" | "error";
@@ -34,6 +35,13 @@ export interface DesktopBridge {
   ): () => void;
   setMiniPlayer(on: boolean): Promise<void>;
   setTrayEnabled(on: boolean): Promise<void>;
+  windowControls?: {
+    minimize(): Promise<void>;
+    maximizeToggle(): Promise<boolean>;
+    close(): Promise<void>;
+    isMaximized(): Promise<boolean>;
+    onMaximizeChange(callback: (isMax: boolean) => void): () => void;
+  };
   storage?: StorageBridge;
 }
 

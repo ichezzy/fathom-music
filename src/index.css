@@ -54,6 +54,81 @@ input {
   padding-bottom: 84px; /* space for nowplaying bar */
 }
 
+/* ---------- Custom title bar (Windows frameless) ---------- */
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  /* Whole strip is the OS drag handle; caption buttons sit at the right. */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.titlebar__mark {
+  font-size: 15px;
+}
+.titlebar__name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+}
+.titlebar__controls {
+  margin-left: auto;
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+.titlebar__btn {
+  width: 46px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.titlebar__btn:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.titlebar__btn--close:hover {
+  background: #c14a3a;
+  color: #fff;
+}
+/* Offset everything below the fixed strip. */
+.app--titlebar {
+  padding-top: 34px;
+}
+.app--titlebar .topbar {
+  top: 34px;
+}
+.app--titlebar .menu__settings {
+  top: 44px;
+}
+/* Mini player owns the whole window; drop the nowplaying padding. */
+.app--mini {
+  padding: 0;
+}
+/* Mini top row doubles as the frameless drag handle. */
+.mini__row--top {
+  -webkit-app-region: drag;
+}
+.mini__row--top button {
+  -webkit-app-region: no-drag;
+}
+
 /* ---------- Top bar ---------- */
 .topbar {
   position: sticky;
@@ -65,7 +140,7 @@ input {
   gap: 24px;
   flex-wrap: wrap;
   padding: 14px 22px;
-  background: linear-gradient(180deg, var(--bg-2), rgba(29, 24, 19, 0.92));
+  background: linear-gradient(180deg, var(--bg-2), rgba(8, 22, 34, 0.92));
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(6px);
 }
@@ -95,7 +170,7 @@ input {
   margin-left: 8px;
   padding: 1px 6px;
   border-radius: 999px;
-  background: rgba(224, 169, 85, 0.16);
+  background: rgba(87, 214, 230, 0.16);
   color: var(--green);
   font-size: 11px;
   letter-spacing: 1px;
@@ -150,7 +225,7 @@ input[type="range"]::-webkit-slider-thumb {
   height: 14px;
   border-radius: 50%;
   background: var(--ember-2);
-  box-shadow: 0 0 0 3px rgba(217, 119, 46, 0.25);
+  box-shadow: 0 0 0 3px rgba(56, 182, 214, 0.25);
 }
 input[type="range"]::-moz-range-thumb {
   width: 14px;
@@ -213,7 +288,7 @@ input[type="range"]:disabled {
 .btn {
   border: 1px solid transparent;
   background: linear-gradient(180deg, var(--ember-2), var(--ember));
-  color: #1a120b;
+  color: #04141c;
   font-weight: 600;
   padding: 9px 16px;
   border-radius: 9px;
@@ -281,7 +356,7 @@ input[type="range"]:disabled {
   height: 48px;
   font-size: 20px;
   background: linear-gradient(180deg, var(--ember-2), var(--ember));
-  color: #1a120b;
+  color: #04141c;
   border-color: transparent;
 }
 
@@ -416,7 +491,7 @@ input[type="range"]:disabled {
 }
 .seg__btn.is-on {
   background: var(--ember);
-  color: #1a120b;
+  color: #04141c;
   font-weight: 600;
 }
 .toggle {
@@ -660,7 +735,7 @@ input[type="text"]:focus {
   align-items: center;
   gap: 20px;
   padding: 12px 22px;
-  background: linear-gradient(180deg, rgba(36, 29, 22, 0.96), var(--bg-2));
+  background: linear-gradient(180deg, rgba(14, 33, 51, 0.96), var(--bg-2));
   border-top: 1px solid var(--line);
   backdrop-filter: blur(8px);
 }
@@ -990,7 +1065,7 @@ input[type="text"]:focus {
 }
 .settings-tabs__btn.is-on {
   color: var(--gold);
-  background: rgba(224, 169, 85, 0.08);
+  background: rgba(87, 214, 230, 0.08);
   box-shadow: inset 0 -2px 0 var(--gold);
 }
 .settings-tabs__panel {
@@ -1051,7 +1126,7 @@ input[type="text"]:focus {
 .hotkey-list__bind.is-capturing {
   border-color: var(--gold);
   color: var(--gold);
-  background: rgba(224, 169, 85, 0.08);
+  background: rgba(87, 214, 230, 0.08);
   font-family: inherit;
   font-style: italic;
   min-width: 200px;
@@ -1223,10 +1298,10 @@ input[type="text"]:focus {
 @keyframes pad-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(224, 169, 85, 0.5);
+    box-shadow: 0 0 0 0 rgba(87, 214, 230, 0.5);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(224, 169, 85, 0);
+    box-shadow: 0 0 0 6px rgba(87, 214, 230, 0);
   }
 }
 
@@ -1393,7 +1468,7 @@ input[type="text"]:focus {
 /* ---------- Loop button ---------- */
 .loop-btn.is-on {
   color: var(--gold);
-  background: rgba(224, 169, 85, 0.12);
+  background: rgba(87, 214, 230, 0.12);
   border-radius: 6px;
 }
 
