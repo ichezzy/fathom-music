@@ -1,11 +1,54 @@
-# Welcome to Tavernloops!
-Tavernloops is an application which was created by me and ClaudeAI.
+# Fathom Music
 
-# What Is Tavernloops?
-Music and sounds are very underrated when playing D&D. Think of any movies or series: Would you be as emotionally invested as you are without background music? Or would you be immersed in a Fantasy setting without ambience? If you want to seamlessly set up music for your table, this app is the right choice. Tavernloops works like any other familiar streaming app but you can upload your music, sounds, ambience and mix them altogether. You can create playlists, campagings and even invite your players to join your room!
+**Music, ambience and sound-effects controller for tabletop RPG game masters.**
 
-# How To Use
-Just download the latest release .exe and install it on your Windows computer, future updates should be made automatically.
+Music and sounds are very underrated at the gaming table. Think of any movie or
+series: would you be as emotionally invested without the score? Would a fantasy
+setting feel alive without ambience? Fathom Music lets you run all of it live —
+like a familiar streaming app, but built for game masters.
 
-# Suggest Features
-If you are missing any features, I'd be happy to include them in the future. Just leave them in (place)
+> Fathom Music was formerly known as **TavernLoops**. Existing installations
+> keep updating automatically.
+
+## Features
+
+- 🎵 **Music** — playlists with your own audio files or YouTube links,
+  crossfade, shuffle, repeat and a play queue.
+- 🌧️ **Ambience** — long looping background beds (rain, tavern crowd, cave …),
+  several at once, each with its own volume, organizable in groups.
+- 💥 **Soundboard** — one-shot effects on colored pads, triggered by click or
+  hotkey, once or on a random interval (a wolf howl every 30–60 s).
+- 🗂️ **Campaigns** — separate libraries per campaign, one click to switch.
+- 🎚️ **Mixer** — master, music, ambience and soundboard volumes.
+- 🖥️ **Desktop comfort** — mini player (always on top), system tray, global
+  hotkeys, selectable audio output device, five languages (EN/DE/FR/ES/IT).
+- 🔄 **Auto-updates** — install once, stay current automatically.
+
+## Installation
+
+Download the latest installer from the
+[Releases page](https://github.com/ichezzy/fathom-music/releases/latest) and
+run it (Windows). Future updates install automatically.
+
+## Suggest features / report bugs
+
+Missing something, or found a bug? Please open an
+[issue](https://github.com/ichezzy/fathom-music/issues) — I'm happy to include
+suggestions in future updates.
+
+## Development
+
+```bash
+npm install            # install dependencies
+npm run electron:dev   # dev mode: Vite + Electron with hot reload
+npm run dist           # build the Windows installer locally (no publish)
+```
+
+On Windows you can also just double-click `start-fathom.bat`.
+
+Built with Electron, React, TypeScript and Vite — created by
+[ichezzy](https://github.com/ichezzy) together with Claude.
+
+## License
+
+[MIT](LICENSE)
