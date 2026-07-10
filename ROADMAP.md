@@ -5,19 +5,26 @@
 > Pläne unter To-Do/Planning nachziehen. Der Gesamtplan steht in `CLAUDE.md`.
 >
 > Kategorien: **Done (Patch-Notes) · In Arbeit · To-Do · Planning · Bugs/Known Issues**.
-> Letzte Aktualisierung: 2026-07-09 · Aktuelle Version: **v0.3.4**
+> Letzte Aktualisierung: 2026-07-10 · Aktuelle Version: **v0.4.0**
 
 ---
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
 
-### Unreleased (lokal, noch nicht getaggt) – 2026-07-10
+### v0.4.0 – 2026-07-10
+- **Vollständiges Rebranding zu Fathom Music:** `package.json`-Name und
+  `productName` umgestellt (Installer, Startmenü, Taskleiste und Datenordner
+  heißen jetzt „Fathom Music"). Die `appId` bleibt bewusst
+  `com.ichezzy.tavernloops`, damit der Installer die bestehende
+  TavernLoops-Installation ersetzt und die Update-Kette intakt bleibt.
+  **Datenmigration:** `migrateLegacyUserData()` zieht die Bibliothek beim
+  ersten Start automatisch von `%APPDATA%\TavernLoops` nach
+  `%APPDATA%\Fathom Music` um.
 - **Neues App-Logo** (W20 über Wasserringen, provisorisch): als Fenster-/
   Taskbar-Icon (`build/icon.ico`/`icon.png`, aus `Logo_Entwurf.png`
   freigestellt), Tray-Icon, und in der UI (Titelleiste, Sidebar, Hauptmenü)
   statt des 🌊-Emojis (`src/assets/logo.png`).
-- **Redesign Schritt 7 – restliche Prototyp-Features** (Nutzer-Test
-  ausstehend):
+- **Redesign Schritt 7 – restliche Prototyp-Features:**
   - **Track-Kontextmenü** („…"-Button oder Rechtsklick auf einen Track):
     „Add to playlist…" (Checkbox-Mehrfachauswahl über alle Playlists) und
     „Add to queue" mit animiertem **Toast** „Zur Warteschlange hinzugefügt".
@@ -29,8 +36,8 @@
   (intrinsische Mindestbreite von Range-Inputs → `min-width: 0`);
   Ambient/Soundboard-Restore-Buttons liegen jetzt **in der Player-Leiste**
   (statt darüber zu schweben — bewusste Abweichung vom Figma-Prototyp).
-- **Redesign Schritt 6 – 1:1-Layout nach Figma-Prototyp** (Nutzer-Test
-  ausstehend): randloses Spalten-Layout (Musik links ~55 %, rechts Ambient
+- **Redesign Schritt 6 – 1:1-Layout nach Figma-Prototyp:**
+  randloses Spalten-Layout (Musik links ~55 %, rechts Ambient
   über Soundboard, getrennt durch Hairlines statt schwebender Karten; jede
   Spalte scrollt für sich); Playlist-Leiste als flache Liste mit Cyan-Kante;
   Loop/Transition/Shuffle als Leiste über der Track-Liste; Track-Zeilen mit
@@ -46,8 +53,8 @@
   Karte zeigt Beschreibung + Tag-Chips. Datenmodell um
   `Campaign.description`/`Campaign.tags` erweitert (abwärtskompatibel),
   neue Store-Action `updateCampaignMeta`, neue i18n-Schlüssel (5 Sprachen).
-- **Redesign Schritt 5 – Abyss-Theme aus dem Figma-Prototyp** (Nutzer-Test
-  ausstehend): Farbpalette auf Tiefsee-Schwarzblau (`#030d18`) mit einem
+- **Redesign Schritt 5 – Abyss-Theme aus dem Figma-Prototyp:**
+  Farbpalette auf Tiefsee-Schwarzblau (`#030d18`) mit einem
   einzigen Biolumineszenz-Cyan-Akzent (`#00c4d4`) umgestellt; neue Schriften
   **Cinzel** (Überschriften/Marke), **DM Sans** (Text), **DM Mono**
   (Labels/Zeiten) – als npm-Pakete gebündelt (offline-fähig, kein Google-CDN);
@@ -118,25 +125,20 @@
 ---
 
 ## 🚧 In Arbeit
-- **UI-Redesign nach Figma-Prototyp:** Schritte 1–4 released; Schritte 5–7
-  (Abyss-Theme, 1:1-Layout, Minimieren, Kampagnen-Einstellungen,
-  Kontextmenü, Hintergrundbilder, Logo — siehe Unreleased) umgesetzt –
-  **Nutzer-Test ausstehend**. Prototyp-Quelle: Figma Make
-  „Music Player UI Design" (Code-Export liegt vor).
+- Nichts – v0.4.0 (Redesign Schritte 5–7 + Rebranding) ist released.
 
 ---
 
 ## 📋 To-Do (als Nächstes geplant)
-- Unreleased-Änderungen committen/pushen (nach Freigabe), danach Release v0.4.0.
+- **Nach dem v0.4.0-Update prüfen:** Auto-Update von TavernLoops 0.3.4 →
+  Fathom Music 0.4.0 (alte Installation sollte ersetzt werden, Bibliothek
+  automatisch migriert). Falls Windows noch einen „TavernLoops"-Eintrag
+  unter „Apps" zeigt, diesen einmalig manuell deinstallieren.
 - Finales Logo (das aktuelle ist laut Anthony provisorisch).
 
 ---
 
 ## 🧭 Planning (später / Ideen)
-- **Interne Umbenennung** `tavernloops` → `fathom-music` (package.json name,
-  `appId`, `productName`): vom Nutzer bewusst verschoben, weil Komplikationen
-  mit Auto-Update/Installer-Identität auftreten können – braucht ein
-  durchdachtes Migrationskonzept.
 - **Räume/Mitspieler:** „invite your players to join your room" (im README
   angekündigt) – Spieler hören live mit; braucht ein Sync-Konzept (kostenlos!).
 - **Backup/Export-Import** der Kampagnen-Bibliothek prüfen/ausbauen.

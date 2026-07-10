@@ -288,6 +288,36 @@ ipcMain.handle("update:install", () => {
   if (!isDev) autoUpdater.quitAndInstall();
 });
 
+// ---- One-time userData migration (TavernLoops -> Fathom Music) ----
+// The userData folder is named after the app; renaming the app (v0.4.0)
+// moved it from %APPDATA%\TavernLoops to %APPDATA%\Fathom Music. Carry the
+// old library over so nobody loses their data. Must run BEFORE the single
+// instance lock / any storage access, both of which touch userData.
+function migrateLegacyUserData() {
+  try {
+    const newDir = app.getPath("userData");
+    const oldDir = path.join(app.getPath("appData"), "TavernLoops");
+    // Only migrate when the old library exists and the new one doesn't yet.
+    if (fs.existsSync(path.join(newDir, "store"))) return;
+    if (!fs.existsSync(path.join(oldDir, "store"))) return;
+    fs.mkdirSync(newDir, { recursive: true });
+    for (const entry of fs.readdirSync(oldDir)) {
+      const from = path.join(oldDir, entry);
+      const to = path.join(newDir, entry);
+      if (fs.existsSync(to)) continue; // never clobber newer data
+      try {
+        fs.renameSync(from, to); // instant on the same volume
+      } catch {
+        fs.cpSync(from, to, { recursive: true, force: false });
+      }
+    }
+    console.log("[migrate] moved library from", oldDir, "to", newDir);
+  } catch (err) {
+    console.error("[migrate] failed:", err?.message);
+  }
+}
+migrateLegacyUserData();
+
 // A single instance keeps one owner of the fixed port and the user's data.
 // A second launch just focuses the existing window.
 const gotSingleInstanceLock = app.requestSingleInstanceLock();

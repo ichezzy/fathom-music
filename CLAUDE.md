@@ -33,12 +33,18 @@ Kernfunktionen:
 
 Repo: https://github.com/ichezzy/fathom-music
 
-**Namens-Historie:** Die App hieß bis v0.2.x **TavernLoops** und wurde mit v0.3.0
-in **Fathom Music** umbenannt. ⚠️ `package.json` behält bewusst `name: tavernloops`,
-`appId: com.ichezzy.tavernloops` und `productName: TavernLoops` – diese Werte
-identifizieren die installierte App und den Auto-Update-Feed. **Nicht ändern**,
-ohne die Migrationsfolgen (Installer-Identität, userData-Pfad, Update-Kette)
-explizit mit dem Nutzer zu klären. Der sichtbare Name in der UI ist „Fathom Music".
+**Namens-Historie:** Die App hieß bis v0.2.x **TavernLoops** (UI-Umbenennung
+mit v0.3.0, vollständiges Rebranding mit v0.4.0: `name: fathom-music`,
+`productName: Fathom Music`). ⚠️ **Zwei Dinge bleiben bewusst beim alten Wert:**
+- `appId: com.ichezzy.tavernloops` – identifiziert die Installation in der
+  Windows-Registry; derselbe Wert sorgt dafür, dass der Installer die alte
+  TavernLoops-Installation ersetzt statt eine zweite App anzulegen. **Nie ändern.**
+- IndexedDB-Name `tavernloops` in `src/lib/db.ts` (Legacy-Web-Storage).
+
+Der `productName`-Wechsel verschob den Datenordner
+(`%APPDATA%\TavernLoops` → `%APPDATA%\Fathom Music`); `migrateLegacyUserData()`
+in `electron/main.cjs` zieht alte Bibliotheken beim ersten Start um –
+diese Funktion nicht entfernen.
 
 ---
 

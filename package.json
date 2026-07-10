@@ -1,7 +1,7 @@
 {
-  "name": "tavernloops",
+  "name": "fathom-music",
   "private": true,
-  "version": "0.3.4",
+  "version": "0.4.0",
   "type": "module",
   "description": "Music, ambience and sound-effects controller for tabletop RPG game masters.",
   "author": "ichezzy",
@@ -40,7 +40,7 @@
   },
   "build": {
     "appId": "com.ichezzy.tavernloops",
-    "productName": "TavernLoops",
+    "productName": "Fathom Music",
     "files": [
       "dist/**",
       "electron/**",
@@ -68,7 +68,7 @@
       {
         "provider": "github",
         "owner": "ichezzy",
-        "repo": "tavernloops",
+        "repo": "fathom-music",
         "releaseType": "release"
       }
     ]
