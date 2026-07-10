@@ -5,6 +5,7 @@ import { useT } from "../lib/i18n";
 import { EditableText, Slider } from "./common";
 import { SettingsModal } from "./SettingsModal";
 import { Icon } from "./Icon";
+import logo from "../assets/logo.png";
 
 /** Left navigation rail: brand, live mixer, and app actions. */
 export function Sidebar() {
@@ -42,9 +43,9 @@ export function Sidebar() {
         >
           <Icon name="back" size={16} />
         </button>
-        <span className="sidebar__mark">🌊</span>
+        <img className="sidebar__mark" src={logo} alt="" aria-hidden />
         <div className="sidebar__brand-text">
-          <span className="sidebar__app">Fathom Music</span>
+          <span className="sidebar__app">Fathom</span>
           <EditableText
             className="sidebar__campaign"
             inputClassName="sidebar__campaign sidebar__campaign--input"

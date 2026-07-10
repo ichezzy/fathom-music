@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useStore } from "../store/store";
 import type { RepeatMode } from "../types";
 import { useT } from "../lib/i18n";
 import { confirmDelete } from "../lib/confirm";
-import { EditableText } from "./common";
+import { EditableText, WaveAnim } from "./common";
 import { Icon } from "./Icon";
 
 export function MusicSection() {
@@ -117,11 +118,29 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
   const renameTrack = useStore((s) => s.renameTrack);
   const addLocalTracks = useStore((s) => s.addLocalTracks);
   const addTrackToPlaylist = useStore((s) => s.addTrackToPlaylist);
-  const enqueueTrack = useStore((s) => s.enqueueTrack);
 
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const [fileOver, setFileOver] = useState(false);
+  // "…" / right-click context menu + "Added to queue" toast (prototype).
+  const [ctxMenu, setCtxMenu] = useState<{
+    trackId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2500);
+  };
+  useEffect(
+    () => () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    },
+    [],
+  );
 
   if (!playlist) return null;
   const isActive = activePlaylistId === playlist.id;
@@ -300,9 +319,13 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
                 e.stopPropagation();
                 onDropReorder(index);
               }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setCtxMenu({ trackId, x: e.clientX, y: e.clientY });
+              }}
             >
-              <span className="tracklist__grip" aria-hidden title="">
-                ⠿
+              <span className="tracklist__index" aria-hidden>
+                {isCurrent ? <WaveAnim playing={status.playing} /> : index + 1}
               </span>
               <button
                 className="tracklist__play"
@@ -327,9 +350,13 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
               <button
                 className="icon-btn icon-btn--mini"
                 title={t("queue.add")}
-                onClick={() => enqueueTrack(trackId)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setCtxMenu({ trackId, x: r.left, y: r.bottom + 4 });
+                }}
               >
-                <Icon name="plus" size={13} />
+                <Icon name="more" size={13} />
               </button>
               <span className="tracklist__order">
                 <button
@@ -364,7 +391,140 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
       </ol>
 
       <AddTrackForm playlistId={playlist.id} />
+
+      {ctxMenu && (
+        <TrackContextMenu
+          trackId={ctxMenu.trackId}
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          onClose={() => setCtxMenu(null)}
+          onAddedToQueue={() => showToast(t("queue.added"))}
+        />
+      )}
+      {toast &&
+        createPortal(
+          <div className="toast">
+            <Icon name="check" size={13} /> {toast}
+          </div>,
+          document.body,
+        )}
     </div>
+  );
+}
+
+/**
+ * Prototype track menu ("…" button or right-click): add the track to the
+ * manual queue, or toggle it in/out of any playlist via checkboxes.
+ */
+function TrackContextMenu({
+  trackId,
+  x,
+  y,
+  onClose,
+  onAddedToQueue,
+}: {
+  trackId: string;
+  x: number;
+  y: number;
+  onClose: () => void;
+  onAddedToQueue: () => void;
+}) {
+  const t = useT();
+  const track = useStore((s) => s.tracks[trackId]);
+  const playlists = useStore((s) => s.playlists);
+  const addTrackToPlaylist = useStore((s) => s.addTrackToPlaylist);
+  const removeTrackFromPlaylist = useStore((s) => s.removeTrackFromPlaylist);
+  const enqueueTrack = useStore((s) => s.enqueueTrack);
+  const [view, setView] = useState<"main" | "playlists">("main");
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click or Escape.
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  if (!track) return null;
+
+  const toggleInPlaylist = (playlistId: string) => {
+    const pl = playlists.find((p) => p.id === playlistId);
+    if (!pl) return;
+    const index = pl.trackIds.indexOf(trackId);
+    if (index >= 0) removeTrackFromPlaylist(playlistId, index);
+    else addTrackToPlaylist(playlistId, trackId);
+  };
+
+  const style: React.CSSProperties = {
+    top: Math.min(y, window.innerHeight - 220),
+    left: Math.min(x, window.innerWidth - 230),
+  };
+
+  return createPortal(
+    <div ref={menuRef} className="ctx-menu" style={style} role="menu">
+      {view === "main" ? (
+        <>
+          <div className="ctx-menu__title">{track.title}</div>
+          <button
+            className="ctx-menu__item"
+            onClick={() => setView("playlists")}
+          >
+            <Icon name="plus" size={13} /> {t("track.addToPlaylist")}
+          </button>
+          <button
+            className="ctx-menu__item"
+            onClick={() => {
+              enqueueTrack(trackId);
+              onAddedToQueue();
+              onClose();
+            }}
+          >
+            <Icon name="queue" size={13} /> {t("queue.add")}
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            className="ctx-menu__item ctx-menu__item--back"
+            onClick={() => setView("main")}
+          >
+            <Icon name="chevronLeft" size={13} /> {t("common.back")}
+          </button>
+          <div className="ctx-menu__list">
+            {playlists.map((pl) => {
+              const has = pl.trackIds.includes(trackId);
+              return (
+                <button
+                  key={pl.id}
+                  className="ctx-menu__item"
+                  onClick={() => toggleInPlaylist(pl.id)}
+                >
+                  <span
+                    className={`ctx-menu__check${has ? " is-on" : ""}`}
+                    aria-hidden
+                  >
+                    {has && <Icon name="check" size={10} />}
+                  </span>
+                  <span className="ctx-menu__name">{pl.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>,
+    document.body,
   );
 }
 

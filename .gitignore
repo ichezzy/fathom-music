@@ -6,6 +6,9 @@ release
 .vite
 *.tsbuildinfo
 
+# Local tooling (Claude session config)
+.claude/
+
 # Editor / OS
 .vscode/*
 !.vscode/extensions.json

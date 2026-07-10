@@ -95,6 +95,9 @@ function normalizeCampaign(c: Partial<Campaign>): Campaign {
     name: c.name ?? DEFAULT_CAMPAIGN_NAME,
     icon: c.icon,
     color: c.color,
+    description: c.description,
+    tags: c.tags,
+    imageFileId: c.imageFileId,
     isDefault: c.isDefault,
     tracks: c.tracks ?? {},
     playlists: c.playlists ?? [],
@@ -193,6 +196,15 @@ interface StoreState {
   // Campaigns
   createCampaign: (name: string, icon?: string, color?: string) => string | null;
   renameCampaign: (id: string, name: string) => void;
+  updateCampaignMeta: (
+    id: string,
+    patch: Partial<
+      Pick<
+        Campaign,
+        "name" | "description" | "tags" | "icon" | "color" | "imageFileId"
+      >
+    >,
+  ) => void;
   deleteCampaign: (id: string) => Promise<void>;
   setActiveCampaign: (id: string) => void;
 
@@ -222,6 +234,12 @@ interface StoreState {
   // Play queue
   queueOpen: boolean;
   setQueueOpen: (open: boolean) => void;
+  /** Runtime-only: ambient / soundboard panels tucked away for a bigger
+   * music view. Restore buttons live in the transport bar. */
+  ambientMinimized: boolean;
+  soundboardMinimized: boolean;
+  setAmbientMinimized: (on: boolean) => void;
+  setSoundboardMinimized: (on: boolean) => void;
   enqueueTrack: (trackId: string) => void;
   playTrackNext: (trackId: string) => void;
   removeFromQueue: (orderIndex: number) => void;
@@ -337,6 +355,7 @@ function referencedFileIds(s: StoreState): Set<string> {
       if (a.source.kind === "local") ids.add(a.source.fileId);
     }
     for (const e of c.soundboard) ids.add(e.fileId);
+    if (c.imageFileId) ids.add(c.imageFileId);
   }
   return ids;
 }
@@ -383,6 +402,8 @@ export const useStore = create<StoreState>((set, get) => ({
   view: "menu",
   miniPlayer: false,
   queueOpen: false,
+  ambientMinimized: false,
+  soundboardMinimized: false,
 
   setView: (view) => set({ view }),
   openCampaign: (id) => {
@@ -447,6 +468,17 @@ export const useStore = create<StoreState>((set, get) => ({
     set((s) => ({
       campaigns: s.campaigns.map((c) =>
         c.id === id ? { ...c, name: trimmed } : c,
+      ),
+    }));
+    schedulePersist(get);
+  },
+
+  updateCampaignMeta: (id, patch) => {
+    // An empty name would leave the card unlabeled; fall back to the old one.
+    const name = patch.name?.trim();
+    set((s) => ({
+      campaigns: s.campaigns.map((c) =>
+        c.id === id ? { ...c, ...patch, name: name || c.name } : c,
       ),
     }));
     schedulePersist(get);
@@ -714,6 +746,8 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   setQueueOpen: (open) => set({ queueOpen: open }),
+  setAmbientMinimized: (on) => set({ ambientMinimized: on }),
+  setSoundboardMinimized: (on) => set({ soundboardMinimized: on }),
   enqueueTrack: (trackId) => {
     const track = get().tracks[trackId];
     const music = get().music;

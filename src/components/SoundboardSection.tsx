@@ -9,7 +9,7 @@ import { GroupHeader } from "./GroupHeader";
 import { Icon } from "./Icon";
 import { ColorPicker, EditableText, IconPicker, Modal, Slider } from "./common";
 
-export function SoundboardSection() {
+export function SoundboardSection({ onMinimize }: { onMinimize?: () => void }) {
   const t = useT();
   const soundboard = useStore((s) => s.soundboard);
   const groups = useStore((s) => s.soundboardGroups);
@@ -45,6 +45,16 @@ export function SoundboardSection() {
           <button className="btn btn--small" onClick={() => setAdding(true)}>
             {t("sfx.add")}
           </button>
+          {onMinimize && (
+            <button
+              className="icon-btn icon-btn--mini"
+              title={t("common.minimize")}
+              aria-label={t("common.minimize")}
+              onClick={onMinimize}
+            >
+              <Icon name="chevronDown" size={13} />
+            </button>
+          )}
         </div>
       </div>
 

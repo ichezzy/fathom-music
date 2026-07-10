@@ -22,6 +22,12 @@ export function App() {
   const hydrate = useStore((s) => s.hydrate);
   const initEngines = useStore((s) => s.initEngines);
   const hostRef = useRef<HTMLDivElement>(null);
+  // Ambient / soundboard panels can be tucked away for a bigger music view;
+  // the transport bar shows restore buttons while they're hidden.
+  const ambientMin = useStore((s) => s.ambientMinimized);
+  const soundboardMin = useStore((s) => s.soundboardMinimized);
+  const setAmbientMin = useStore((s) => s.setAmbientMinimized);
+  const setSoundboardMin = useStore((s) => s.setSoundboardMinimized);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,12 +111,24 @@ export function App() {
           <div className="shell">
             <Sidebar />
             <div className="content">
-              <main className="layout">
+              <main
+                className={`layout${
+                  ambientMin && soundboardMin ? " layout--full" : ""
+                }`}
+              >
                 <MusicSection />
-                <div className="layout__side">
-                  <AmbientSection />
-                  <SoundboardSection />
-                </div>
+                {(!ambientMin || !soundboardMin) && (
+                  <div className="layout__side">
+                    {!ambientMin && (
+                      <AmbientSection onMinimize={() => setAmbientMin(true)} />
+                    )}
+                    {!soundboardMin && (
+                      <SoundboardSection
+                        onMinimize={() => setSoundboardMin(true)}
+                      />
+                    )}
+                  </div>
+                )}
               </main>
             </div>
           </div>

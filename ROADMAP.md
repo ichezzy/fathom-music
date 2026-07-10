@@ -11,9 +11,55 @@
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
 
-### Unreleased (lokal, noch nicht getaggt) – 2026-07-09
-- **Projekt-Setup:** `start-fathom.bat` (Doppelklick-Start im Dev-Modus, getestet),
-  `CLAUDE.md` (Projektleitfaden) und `ROADMAP.md` (dieses Board) angelegt.
+### Unreleased (lokal, noch nicht getaggt) – 2026-07-10
+- **Neues App-Logo** (W20 über Wasserringen, provisorisch): als Fenster-/
+  Taskbar-Icon (`build/icon.ico`/`icon.png`, aus `Logo_Entwurf.png`
+  freigestellt), Tray-Icon, und in der UI (Titelleiste, Sidebar, Hauptmenü)
+  statt des 🌊-Emojis (`src/assets/logo.png`).
+- **Redesign Schritt 7 – restliche Prototyp-Features** (Nutzer-Test
+  ausstehend):
+  - **Track-Kontextmenü** („…"-Button oder Rechtsklick auf einen Track):
+    „Add to playlist…" (Checkbox-Mehrfachauswahl über alle Playlists) und
+    „Add to queue" mit animiertem **Toast** „Zur Warteschlange hinzugefügt".
+  - **Kampagnen-Hintergrundbild:** Upload in den Kampagnen-Einstellungen
+    (als Blob im Dateispeicher, wird bei Ersetzen/Löschen aufgeräumt);
+    Karte zeigt das Bild mit Farbverlauf-Abdunklung — ohne Bild den
+    **Fathom-W20** auf Tiefen-Gradient (statt Emoji-Icon).
+- **Fixes:** Sidebar-Mixer-Slider liefen ins Musik-Panel hinein
+  (intrinsische Mindestbreite von Range-Inputs → `min-width: 0`);
+  Ambient/Soundboard-Restore-Buttons liegen jetzt **in der Player-Leiste**
+  (statt darüber zu schweben — bewusste Abweichung vom Figma-Prototyp).
+- **Redesign Schritt 6 – 1:1-Layout nach Figma-Prototyp** (Nutzer-Test
+  ausstehend): randloses Spalten-Layout (Musik links ~55 %, rechts Ambient
+  über Soundboard, getrennt durch Hairlines statt schwebender Karten; jede
+  Spalte scrollt für sich); Playlist-Leiste als flache Liste mit Cyan-Kante;
+  Loop/Transition/Shuffle als Leiste über der Track-Liste; Track-Zeilen mit
+  Nummern-Spalte und **Wave-Equalizer-Animation** am laufenden Track;
+  Ambient als **kompakte Zeilenliste** (Puls-Punkt, Regler nur bei aktivem
+  Sound); Soundboard-Pads kompakter; **Player-Leiste** neu: Trackinfo links,
+  Controls + Fortschritt mittig gestapelt, Warteschlange rechts.
+- **Neu: Ambient/Soundboard minimieren** — Chevron im Panel-Header blendet
+  das Panel aus, das andere streckt sich; schwebende Restore-Buttons unten
+  rechts; beide minimiert = Musik über die volle Breite.
+- **Neu: Kampagnen-Einstellungen** (Zahnrad auf der Karte bei Hover):
+  Name, **Beschreibung**, **Tags** (Chips), Icon und Farbe bearbeiten;
+  Karte zeigt Beschreibung + Tag-Chips. Datenmodell um
+  `Campaign.description`/`Campaign.tags` erweitert (abwärtskompatibel),
+  neue Store-Action `updateCampaignMeta`, neue i18n-Schlüssel (5 Sprachen).
+- **Redesign Schritt 5 – Abyss-Theme aus dem Figma-Prototyp** (Nutzer-Test
+  ausstehend): Farbpalette auf Tiefsee-Schwarzblau (`#030d18`) mit einem
+  einzigen Biolumineszenz-Cyan-Akzent (`#00c4d4`) umgestellt; neue Schriften
+  **Cinzel** (Überschriften/Marke), **DM Sans** (Text), **DM Mono**
+  (Labels/Zeiten) – als npm-Pakete gebündelt (offline-fähig, kein Google-CDN);
+  Slider im Prototyp-Stil (3-px-Spur, glühender Daumen); Panel-Header als
+  Cinzel-Versalien mit Hairline; Buttons (Cyan-Glow + Ghost), Pads, Ambient-
+  Kacheln, Player-Bar, Queue, Modals und Einstellungen restylt; **Hauptmenü
+  als Kampagnen-Karten-Grid** (Farbverlauf + Icon, Hover-Glow, Löschen bei
+  Hover) statt vertikaler Liste; neuer i18n-Schlüssel `menu.subtitleHint`
+  (alle 5 Sprachen). Quelle: `Music Player UI Design` (Figma Make, Code-Export).
+- **Projekt-Setup (2026-07-09):** `start-fathom.bat` (Doppelklick-Start im
+  Dev-Modus, getestet), `CLAUDE.md` (Projektleitfaden) und `ROADMAP.md`
+  (dieses Board) angelegt.
 - Lokaler Ordner mit dem GitHub-Repo verbunden (`git init` + `origin/main`).
 - **README.md modernisiert:** Name Fathom Music, Feature-Liste, Download-Link,
   Feature-Wünsche → GitHub Issues, Dev-Anleitung.
@@ -72,16 +118,17 @@
 ---
 
 ## 🚧 In Arbeit
-- **UI-Redesign (Spotify-Stil):** Schritte 1–4 released (Farbpalette, frameless
-  Titelleiste, Queue, Sidebar-Layout). Als Nächstes: Abgleich mit Anthonys
-  **Figma-Testlayout** (Link ausstehend).
+- **UI-Redesign nach Figma-Prototyp:** Schritte 1–4 released; Schritte 5–7
+  (Abyss-Theme, 1:1-Layout, Minimieren, Kampagnen-Einstellungen,
+  Kontextmenü, Hintergrundbilder, Logo — siehe Unreleased) umgesetzt –
+  **Nutzer-Test ausstehend**. Prototyp-Quelle: Figma Make
+  „Music Player UI Design" (Code-Export liegt vor).
 
 ---
 
 ## 📋 To-Do (als Nächstes geplant)
-- **Figma-Testlayout umsetzen:** Anthony hat in Figma ein Testlayout für die
-  App erstellt → Link einholen, Layout analysieren, Redesign-Schritte ableiten.
-- Unreleased-Änderungen committen/pushen (nach Freigabe).
+- Unreleased-Änderungen committen/pushen (nach Freigabe), danach Release v0.4.0.
+- Finales Logo (das aktuelle ist laut Anthony provisorisch).
 
 ---
 

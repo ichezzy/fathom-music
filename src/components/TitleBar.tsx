@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { desktop } from "../lib/desktop";
+import logo from "../assets/logo.png";
 
 /**
  * Custom title bar for the frameless Windows window. The strip itself is the
@@ -18,7 +19,7 @@ export function TitleBar() {
 
   return (
     <div className="titlebar">
-      <span className="titlebar__mark">🌊</span>
+      <img className="titlebar__mark" src={logo} alt="" aria-hidden />
       <span className="titlebar__name">Fathom Music</span>
       <div className="titlebar__controls">
         <button

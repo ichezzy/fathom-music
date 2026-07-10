@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { useT } from "../lib/i18n";
 import { CAMPAIGN_COLORS, CAMPAIGN_ICONS } from "../lib/format";
 import { desktop } from "../lib/desktop";
 import { askConfirm } from "../lib/confirm";
+import { deleteFile, getFileUrl, putFile } from "../lib/db";
+import { uid } from "../lib/id";
 import { Icon } from "./Icon";
 import type { Campaign } from "../types";
 import {
@@ -13,6 +15,7 @@ import {
   Modal,
 } from "./common";
 import { SettingsModal } from "./SettingsModal";
+import logo from "../assets/logo.png";
 
 const MAX_CAMPAIGNS = 4;
 
@@ -30,6 +33,8 @@ export function MainMenu() {
 
   const [creating, setCreating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [campaignSettingsFor, setCampaignSettingsFor] =
+    useState<Campaign | null>(null);
   const [version, setVersion] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,75 +59,99 @@ export function MainMenu() {
 
   return (
     <div className="menu">
-      <button
-        className="icon-btn menu__settings"
-        title={t("settings.open")}
-        aria-label={t("settings.open")}
-        onClick={() => setSettingsOpen(true)}
-      >
-        <Icon name="settings" />
-      </button>
+      <div className="menu__topbar">
+        <div className="menu__brand">
+          <img className="menu__mark" src={logo} alt="" aria-hidden />
+          <h1>Fathom</h1>
+          <p>{t("app.subtitle")}</p>
+        </div>
+        <button
+          className="icon-btn menu__settings"
+          title={t("settings.open")}
+          aria-label={t("settings.open")}
+          onClick={() => setSettingsOpen(true)}
+        >
+          <Icon name="settings" />
+        </button>
+      </div>
 
       <header className="menu__head">
-        <span className="menu__mark">🌊</span>
-        <h1>Fathom Music</h1>
-        <p>{t("menu.subtitle")}</p>
+        <h2>{t("menu.subtitle")}</h2>
+        <p>{t("menu.subtitleHint")}</p>
       </header>
 
       <ol className="menu__list">
         {campaigns.map((c) => {
           const counts = countsFor(c);
           const isActive = c.id === activeId;
+          const color = c.color ?? "#0a1e38";
           return (
             <li
               key={c.id}
-              className={`campaign-row${isActive ? " is-active" : ""}`}
+              className={`campaign-card${isActive ? " is-active" : ""}`}
+              role="button"
+              tabIndex={0}
+              title={t("menu.open")}
+              onClick={() => openCampaign(c.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") openCampaign(c.id);
+              }}
             >
-              <button
-                className="campaign-row__main"
-                style={{
-                  borderLeftColor: c.color ?? "var(--gold)",
-                }}
-                onClick={() => openCampaign(c.id)}
-                title={t("menu.open")}
-              >
-                <span
-                  className="campaign-row__icon"
-                  style={{ background: c.color ?? "#3a2f25" }}
-                >
-                  {c.icon ?? "🍺"}
-                </span>
-                <span className="campaign-row__text">
-                  <EditableText
-                    className="campaign-row__name"
-                    inputClassName="campaign-row__name campaign-row__name--input"
-                    value={c.name}
-                    title={t("music.renameHint")}
-                    onSubmit={(next) => renameCampaign(c.id, next)}
-                  />
-                  <span className="campaign-row__meta">
-                    {t("menu.playlistsCount", { n: counts.playlists })} ·{" "}
-                    {t("menu.soundsCount", { n: counts.sounds })}
-                    {isActive && (
-                      <span className="campaign-row__badge">
-                        {t("menu.active")}
+              <CampaignCardArt campaign={c} color={color} />
+              <div className="campaign-card__body">
+                {(c.tags?.length ?? 0) > 0 && (
+                  <span className="campaign-card__tags">
+                    {c.tags!.map((tag) => (
+                      <span key={tag} className="campaign-card__tag">
+                        {tag}
                       </span>
-                    )}
+                    ))}
                   </span>
+                )}
+                <EditableText
+                  className="campaign-card__name"
+                  inputClassName="campaign-card__name campaign-card__name--input"
+                  value={c.name}
+                  title={t("music.renameHint")}
+                  onSubmit={(next) => renameCampaign(c.id, next)}
+                />
+                {c.description && (
+                  <span className="campaign-card__desc">{c.description}</span>
+                )}
+                <span className="campaign-card__meta">
+                  {t("menu.playlistsCount", { n: counts.playlists })} ·{" "}
+                  {t("menu.soundsCount", { n: counts.sounds })}
+                  {isActive && (
+                    <span className="campaign-card__badge">
+                      {t("menu.active")}
+                    </span>
+                  )}
                 </span>
-                <span className="campaign-row__chev" aria-hidden>
-                  ›
-                </span>
-              </button>
-              {!c.isDefault && (
+              </div>
+              <span className="campaign-card__actions">
                 <button
-                  className="icon-btn icon-btn--mini campaign-row__del"
-                  title={t("menu.delete")}
-                  onClick={() => onDelete(c)}
+                  className="icon-btn icon-btn--mini"
+                  title={t("campaign.settings")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCampaignSettingsFor(c);
+                  }}
                 >
-                  <Icon name="trash" size={14} />
+                  <Icon name="settings" size={14} />
                 </button>
-              )}
+                {!c.isDefault && (
+                  <button
+                    className="icon-btn icon-btn--mini"
+                    title={t("menu.delete")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(c);
+                    }}
+                  >
+                    <Icon name="trash" size={14} />
+                  </button>
+                )}
+              </span>
             </li>
           );
         })}
@@ -130,12 +159,12 @@ export function MainMenu() {
         {campaigns.length < MAX_CAMPAIGNS && (
           <li>
             <button
-              className="campaign-row campaign-row--new"
+              className="campaign-card--new"
               onClick={() => setCreating(true)}
             >
-              <span className="campaign-row__plus">
-              <Icon name="plus" size={22} />
-            </span>
+              <span className="campaign-card__plus">
+                <Icon name="plus" size={22} />
+              </span>
               <span>{t("menu.new")}</span>
             </button>
           </li>
@@ -146,7 +175,263 @@ export function MainMenu() {
 
       {creating && <NewCampaignModal onClose={() => setCreating(false)} />}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {campaignSettingsFor && (
+        <CampaignSettingsModal
+          campaign={campaignSettingsFor}
+          onClose={() => setCampaignSettingsFor(null)}
+        />
+      )}
     </div>
+  );
+}
+
+/**
+ * Card backdrop: the uploaded background image (darkened towards the bottom
+ * for text contrast), or the Fathom d20 on a depth gradient when none is set.
+ */
+function CampaignCardArt({
+  campaign,
+  color,
+}: {
+  campaign: Campaign;
+  color: string;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (campaign.imageFileId) {
+      void getFileUrl(campaign.imageFileId).then(
+        (u) => active && setUrl(u),
+      );
+    } else {
+      setUrl(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [campaign.imageFileId]);
+
+  return (
+    <div
+      className="campaign-card__bg"
+      style={
+        url
+          ? undefined
+          : {
+              background: `linear-gradient(180deg, ${color} 0%, ${color}90 45%, #030d18 100%)`,
+            }
+      }
+    >
+      {url ? (
+        <>
+          <img className="campaign-card__img" src={url} alt="" />
+          <div
+            className="campaign-card__shade"
+            style={{
+              background: `linear-gradient(to top, ${color}f0 0%, ${color}55 40%, transparent 100%)`,
+            }}
+          />
+        </>
+      ) : (
+        <img className="campaign-card__d20" src={logo} alt="" aria-hidden />
+      )}
+    </div>
+  );
+}
+
+/** Edit a campaign's card: name, flavor text, tags, image, icon and color. */
+function CampaignSettingsModal({
+  campaign,
+  onClose,
+}: {
+  campaign: Campaign;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const updateCampaignMeta = useStore((s) => s.updateCampaignMeta);
+
+  const [name, setName] = useState(campaign.name);
+  const [description, setDescription] = useState(campaign.description ?? "");
+  const [tags, setTags] = useState<string[]>(campaign.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
+  const [icon, setIcon] = useState(campaign.icon ?? CAMPAIGN_ICONS[0]);
+  const [color, setColor] = useState(campaign.color ?? CAMPAIGN_COLORS[0]);
+  // Image changes are staged locally and only written on save.
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (imageFile) {
+      const url = URL.createObjectURL(imageFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    if (imageRemoved || !campaign.imageFileId) {
+      setPreviewUrl(null);
+      return;
+    }
+    let active = true;
+    void getFileUrl(campaign.imageFileId).then(
+      (u) => active && setPreviewUrl(u),
+    );
+    return () => {
+      active = false;
+    };
+  }, [imageFile, imageRemoved, campaign.imageFileId]);
+
+  const addTag = () => {
+    const tag = tagInput.trim();
+    if (tag && !tags.includes(tag)) setTags((prev) => [...prev, tag]);
+    setTagInput("");
+  };
+
+  const onSave = async () => {
+    let imageFileId = imageRemoved ? undefined : campaign.imageFileId;
+    if (imageFile) {
+      const newId = uid("img");
+      await putFile(newId, imageFile);
+      imageFileId = newId;
+    }
+    // Drop the previous blob once it's replaced or removed.
+    if (campaign.imageFileId && imageFileId !== campaign.imageFileId) {
+      void deleteFile(campaign.imageFileId);
+    }
+    updateCampaignMeta(campaign.id, {
+      name,
+      description: description.trim(),
+      tags,
+      icon,
+      color,
+      imageFileId,
+    });
+    onClose();
+  };
+
+  return (
+    <Modal title={t("campaign.settings")} onClose={onClose}>
+      <label className="field">
+        <span>{t("ambient.name")}</span>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </label>
+      <label className="field">
+        <span>{t("campaign.description")}</span>
+        <input
+          type="text"
+          placeholder={t("campaign.descriptionPlaceholder")}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </label>
+      <div className="field">
+        <span>{t("campaign.tags")}</span>
+        {tags.length > 0 && (
+          <div className="tag-chips">
+            {tags.map((tag) => (
+              <span key={tag} className="tag-chip">
+                {tag}
+                <button
+                  type="button"
+                  className="tag-chip__remove"
+                  aria-label={t("queue.remove")}
+                  onClick={() =>
+                    setTags((prev) => prev.filter((x) => x !== tag))
+                  }
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="tag-add">
+          <input
+            type="text"
+            placeholder={t("campaign.addTag")}
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") addTag();
+            }}
+          />
+          <button className="btn btn--small btn--ghost" onClick={addTag}>
+            +
+          </button>
+        </div>
+      </div>
+      <div className="field">
+        <span>{t("campaign.image")}</span>
+        <div className="image-field">
+          <div className="image-field__preview">
+            {previewUrl ? (
+              <img src={previewUrl} alt="" />
+            ) : (
+              <img
+                className="image-field__d20"
+                src={logo}
+                alt=""
+                aria-hidden
+              />
+            )}
+          </div>
+          <div className="image-field__actions">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setImageFile(file);
+                  setImageRemoved(false);
+                }
+                e.target.value = "";
+              }}
+            />
+            <button
+              className="btn btn--small btn--ghost"
+              onClick={() => fileRef.current?.click()}
+            >
+              {t("campaign.imageChoose")}
+            </button>
+            {previewUrl && (
+              <button
+                className="btn btn--small btn--ghost"
+                onClick={() => {
+                  setImageFile(null);
+                  setImageRemoved(true);
+                }}
+              >
+                {t("queue.remove")}
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="field__hint">{t("campaign.imageHint")}</p>
+      </div>
+      <div className="field">
+        <span>{t("menu.icon")}</span>
+        <IconPicker icons={CAMPAIGN_ICONS} value={icon} onChange={setIcon} />
+      </div>
+      <div className="field">
+        <span>{t("menu.color")}</span>
+        <ColorPicker
+          colors={CAMPAIGN_COLORS}
+          value={color}
+          onChange={setColor}
+        />
+      </div>
+      <button className="btn" onClick={() => void onSave()}>
+        {t("common.save")}
+      </button>
+    </Modal>
   );
 }
 

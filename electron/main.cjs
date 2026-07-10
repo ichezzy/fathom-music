@@ -65,8 +65,10 @@ function createWindow() {
     y: saved.y,
     minWidth: windowState.MIN.width,
     minHeight: windowState.MIN.height,
-    backgroundColor: "#0a1826",
+    backgroundColor: "#030d18",
     autoHideMenuBar: true,
+    // Taskbar / window icon (the packaged exe icon comes from build/icon.ico).
+    icon: findTrayIconPath() ?? undefined,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,

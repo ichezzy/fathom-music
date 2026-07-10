@@ -26,6 +26,21 @@ export function Slider({ value, onChange, label, ariaLabel }: SliderProps) {
   );
 }
 
+/** Animated equalizer bars marking the currently playing track (prototype). */
+export function WaveAnim({ playing }: { playing: boolean }) {
+  return (
+    <span className={`wave${playing ? "" : " is-paused"}`} aria-hidden>
+      {[40, 75, 50, 90, 60, 80, 45].map((h, i) => (
+        <span
+          key={i}
+          className="wave__bar"
+          style={{ height: `${h}%`, animationDelay: `${i * 0.08}s` }}
+        />
+      ))}
+    </span>
+  );
+}
+
 interface ModalProps {
   title: string;
   onClose: () => void;

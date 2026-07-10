@@ -21,7 +21,9 @@ export type IconName =
   | "chevronUp"
   | "chevronDown"
   | "chevronLeft"
-  | "chevronRight";
+  | "chevronRight"
+  | "more"
+  | "check";
 
 const P: Record<IconName, JSX.Element> = {
   // Filled shapes for the primary transport controls.
@@ -91,6 +93,14 @@ const P: Record<IconName, JSX.Element> = {
   chevronDown: <path d="M6 9l6 6 6-6" />,
   chevronLeft: <path d="M15 18l-6-6 6-6" />,
   chevronRight: <path d="M9 6l6 6-6 6" />,
+  more: (
+    <path
+      d="M5 12h.01M12 12h.01M19 12h.01"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+  ),
+  check: <path d="M5 12l5 5 9-10" />,
 };
 
 export function Icon({

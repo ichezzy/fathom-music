@@ -117,6 +117,12 @@ export interface Campaign extends CampaignData {
   icon?: string;
   /** Accent color for the campaign card. */
   color?: string;
+  /** Short flavor text shown on the campaign card. */
+  description?: string;
+  /** Atmosphere tags shown as chips on the campaign card. */
+  tags?: string[];
+  /** Stored file id of an uploaded card background image. */
+  imageFileId?: string;
   /** The Standard campaign can't be deleted, so there's always a fallback. */
   isDefault?: boolean;
 }

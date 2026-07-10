@@ -9,7 +9,7 @@ import { GroupHeader } from "./GroupHeader";
 import { Icon } from "./Icon";
 import { EditableText, IconPicker, Modal, Slider } from "./common";
 
-export function AmbientSection() {
+export function AmbientSection({ onMinimize }: { onMinimize?: () => void }) {
   const t = useT();
   const ambient = useStore((s) => s.ambient);
   const groups = useStore((s) => s.ambientGroups);
@@ -45,6 +45,16 @@ export function AmbientSection() {
           <button className="btn btn--small" onClick={() => setAdding(true)}>
             {t("ambient.addSound")}
           </button>
+          {onMinimize && (
+            <button
+              className="icon-btn icon-btn--mini"
+              title={t("common.minimize")}
+              aria-label={t("common.minimize")}
+              onClick={onMinimize}
+            >
+              <Icon name="chevronDown" size={13} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -135,14 +145,14 @@ function AmbientTile({
 
   return (
     <div className={`ambient-tile${isOn ? " is-on" : ""}`}>
+      {/* Pulsing status dot + icon toggle the layer (prototype row layout). */}
       <button
         className="ambient-tile__main"
+        title={isOn ? t("ambient.running") : t("ambient.stopped")}
         onClick={() => toggleAmbient(sound.id)}
       >
+        <span className="ambient-tile__dot" aria-hidden />
         <span className="ambient-tile__icon">{sound.icon}</span>
-        <span className="ambient-tile__state">
-          {isOn ? t("ambient.running") : t("ambient.stopped")}
-        </span>
       </button>
       <EditableText
         className="ambient-tile__name"
@@ -151,13 +161,17 @@ function AmbientTile({
         title={t("music.renameHint")}
         onSubmit={(next) => renameAmbient(sound.id, next)}
       />
-      <Slider
-        value={sound.volume}
-        ariaLabel={sound.name}
-        onChange={(v) => setAmbientVolume(sound.id, v)}
-      />
+      {!editing && isOn && (
+        <div className="ambient-tile__vol">
+          <Slider
+            value={sound.volume}
+            ariaLabel={sound.name}
+            onChange={(v) => setAmbientVolume(sound.id, v)}
+          />
+        </div>
+      )}
       {editing ? (
-        <>
+        <div className="ambient-tile__edit">
           {groups.length > 0 && (
             <select
               className="tile-group-select"
@@ -174,32 +188,30 @@ function AmbientTile({
               ))}
             </select>
           )}
-          <div className="ambient-tile__edit">
-            <button
-              className="icon-btn icon-btn--mini"
-              title={t("common.moveUp")}
-              disabled={!canUp}
-              onClick={() => prevIndex !== undefined && moveAmbient(flatIndex, prevIndex)}
-            >
-              <Icon name="chevronLeft" size={13} />
-            </button>
-            <button
-              className="icon-btn icon-btn--mini"
-              title={t("common.moveDown")}
-              disabled={!canDown}
-              onClick={() => nextIndex !== undefined && moveAmbient(flatIndex, nextIndex)}
-            >
-              <Icon name="chevronRight" size={13} />
-            </button>
-            <button
-              className="icon-btn icon-btn--mini ambient-tile__del"
-              title={t("ambient.delete")}
-              onClick={onDelete}
-            >
-              <Icon name="trash" size={13} />
-            </button>
-          </div>
-        </>
+          <button
+            className="icon-btn icon-btn--mini"
+            title={t("common.moveUp")}
+            disabled={!canUp}
+            onClick={() => prevIndex !== undefined && moveAmbient(flatIndex, prevIndex)}
+          >
+            <Icon name="chevronUp" size={13} />
+          </button>
+          <button
+            className="icon-btn icon-btn--mini"
+            title={t("common.moveDown")}
+            disabled={!canDown}
+            onClick={() => nextIndex !== undefined && moveAmbient(flatIndex, nextIndex)}
+          >
+            <Icon name="chevronDown" size={13} />
+          </button>
+          <button
+            className="icon-btn icon-btn--mini ambient-tile__del"
+            title={t("ambient.delete")}
+            onClick={onDelete}
+          >
+            <Icon name="trash" size={13} />
+          </button>
+        </div>
       ) : (
         <button
           className="icon-btn icon-btn--mini ambient-tile__del"
