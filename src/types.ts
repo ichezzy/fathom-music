@@ -13,7 +13,14 @@ export interface Track {
   gain?: number;
 }
 
-export type RepeatMode = "off" | "all" | "one";
+/**
+ * Loop behaviour for the current track. Playlists/queues always continue and
+ * restart on their own, so there is no "loop the whole playlist" mode.
+ *   off  – no track repeat (playlist plays through and auto-restarts)
+ *   one  – repeat the current track forever
+ *   once – repeat the current track one extra time, then continue
+ */
+export type RepeatMode = "off" | "one" | "once";
 
 export interface Playlist {
   id: string;

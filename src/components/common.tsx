@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useT } from "../lib/i18n";
 import { Icon } from "./Icon";
 
 interface SliderProps {
@@ -10,7 +11,22 @@ interface SliderProps {
 }
 
 export function Slider({ value, onChange, label, ariaLabel }: SliderProps) {
+  const t = useT();
   const pct = Math.round(value * 100);
+  // Double-click the number to type an exact 0–100 percentage.
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  const startEdit = () => {
+    setDraft(String(pct));
+    setEditing(true);
+  };
+  const commit = () => {
+    const n = Math.round(Number(draft));
+    if (!Number.isNaN(n)) onChange(Math.max(0, Math.min(100, n)) / 100);
+    setEditing(false);
+  };
+
   return (
     <label className="slider">
       {label && <span className="slider__label">{label}</span>}
@@ -25,7 +41,30 @@ export function Slider({ value, onChange, label, ariaLabel }: SliderProps) {
         aria-label={ariaLabel ?? label}
         onChange={(e) => onChange(Number(e.target.value) / 100)}
       />
-      <span className="slider__value">{pct}</span>
+      {editing ? (
+        <input
+          type="number"
+          className="slider__value slider__value--input"
+          min={0}
+          max={100}
+          value={draft}
+          autoFocus
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+            else if (e.key === "Escape") setEditing(false);
+          }}
+        />
+      ) : (
+        <span
+          className="slider__value"
+          title={t("mixer.editHint")}
+          onDoubleClick={startEdit}
+        >
+          {pct}
+        </span>
+      )}
     </label>
   );
 }

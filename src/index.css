@@ -399,6 +399,27 @@ input {
   color: var(--muted);
   font-family: var(--font-data);
   font-size: 10px;
+  cursor: pointer;
+}
+.slider__value:hover {
+  color: var(--text);
+}
+/* Inline editor shown after double-clicking the value. */
+.slider__value--input {
+  width: 32px;
+  padding: 1px 3px;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 196, 212, 0.5);
+  border-radius: 4px;
+  outline: none;
+  cursor: text;
+  -moz-appearance: textfield;
+}
+.slider__value--input::-webkit-outer-spin-button,
+.slider__value--input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 input[type="range"] {
   -webkit-appearance: none;
@@ -444,8 +465,8 @@ input[type="range"]:disabled {
  * Selectors are qualified with input[type="range"] so they out-specify the
  * base range rule (whose [type] attribute already gives it a class's weight). */
 input[type="range"].slider__range {
-  height: 4px;
-  border-radius: 3px;
+  height: 5px;
+  border-radius: 1px;
   background: linear-gradient(
     to right,
     var(--ember-2) 0 var(--pct, 0%),
@@ -453,25 +474,21 @@ input[type="range"].slider__range {
   );
 }
 input[type="range"].slider__range::-webkit-slider-thumb {
-  width: 12px;
-  height: 12px;
+  width: 5px;
+  height: 15px;
+  border-radius: 1px;
   background: #eafdff;
-  box-shadow:
-    0 0 0 3px rgba(0, 196, 212, 0.22),
-    0 0 10px rgba(0, 196, 212, 0.85);
+  box-shadow: 0 0 8px rgba(0, 196, 212, 0.9);
 }
 input[type="range"].slider__range:hover::-webkit-slider-thumb {
-  box-shadow:
-    0 0 0 4px rgba(0, 196, 212, 0.28),
-    0 0 16px rgba(0, 196, 212, 1);
+  box-shadow: 0 0 14px rgba(0, 196, 212, 1);
 }
 input[type="range"].slider__range::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
+  width: 5px;
+  height: 15px;
+  border-radius: 1px;
   background: #eafdff;
-  box-shadow:
-    0 0 0 3px rgba(0, 196, 212, 0.22),
-    0 0 10px rgba(0, 196, 212, 0.85);
+  box-shadow: 0 0 8px rgba(0, 196, 212, 0.9);
 }
 
 /* ---------- App shell (sidebar + content) ---------- */
@@ -1342,6 +1359,16 @@ input[type="text"]:focus {
 .nowplaying .icon-btn:not(.icon-btn--play):hover {
   color: var(--ember-2);
   background: rgba(0, 196, 212, 0.08);
+}
+/* Toggle transport buttons (loop, shuffle): clearly dim when off, bright and
+ * glowing when on. */
+.nowplaying .icon-btn.is-on {
+  color: var(--ember-2);
+  background: rgba(0, 196, 212, 0.14);
+  filter: drop-shadow(0 0 5px rgba(0, 196, 212, 0.65));
+}
+.nowplaying .icon-btn.is-on:hover {
+  background: rgba(0, 196, 212, 0.2);
 }
 .nowplaying .icon-btn--play {
   width: 38px;

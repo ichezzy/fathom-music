@@ -10,6 +10,7 @@ export type IconName =
   | "next"
   | "repeat"
   | "repeatOne"
+  | "repeatInfinite"
   | "queue"
   | "settings"
   | "back"
@@ -72,6 +73,23 @@ const P: Record<IconName, JSX.Element> = {
         stroke="none"
       >
         1
+      </text>
+    </>
+  ),
+  // Loop arrows with an ∞ mark — repeat the current track forever.
+  repeatInfinite: (
+    <>
+      <path d="M17 2l3 3-3 3M7 22l-3-3 3-3M20 5H8a4 4 0 00-4 4v1M4 19h12a4 4 0 004-4v-1" />
+      <text
+        x="12"
+        y="15.5"
+        fontSize="9"
+        fontWeight="700"
+        textAnchor="middle"
+        fill="currentColor"
+        stroke="none"
+      >
+        ∞
       </text>
     </>
   ),

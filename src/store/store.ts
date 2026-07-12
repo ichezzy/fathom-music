@@ -369,9 +369,14 @@ function applyMixer(get: () => StoreState): void {
   soundboard_engine?.setOutputScale(mixer.master * mixer.soundboard);
 }
 
+/** Map any stored repeat value (incl. the legacy "all") to a current mode. */
+function coerceRepeat(r: unknown): RepeatMode {
+  return r === "one" || r === "once" ? r : "off";
+}
+
 function settingsOf(pl: Playlist) {
   return {
-    repeat: pl.repeat,
+    repeat: coerceRepeat(pl.repeat),
     crossfade: pl.crossfade,
     crossfadeSeconds: pl.crossfadeSeconds,
     shuffle: pl.shuffle,
@@ -666,7 +671,7 @@ export const useStore = create<StoreState>((set, get) => ({
       id,
       name: name.trim() || "Neue Playlist",
       trackIds: [],
-      repeat: "all",
+      repeat: "off",
       crossfade: true,
       crossfadeSeconds: 4,
       shuffle: false,

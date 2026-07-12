@@ -5,11 +5,30 @@
 > Pläne unter To-Do/Planning nachziehen. Der Gesamtplan steht in `CLAUDE.md`.
 >
 > Kategorien: **Done (Patch-Notes) · In Arbeit · To-Do · Planning · Bugs/Known Issues**.
-> Letzte Aktualisierung: 2026-07-12 · Aktuelle Version: **v0.4.2**
+> Letzte Aktualisierung: 2026-07-12 · Aktuelle Version: **v0.4.3**
 
 ---
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
+
+### v0.4.3 – 2026-07-12
+- **Loop/Shuffle-Icons zeigen jetzt klar an/aus:** Symbol **matt-grau wenn aus**,
+  **hell-cyan leuchtend (Glow) wenn an**. Vorher leuchtete Loop immer und Shuffle
+  blieb immer grau — die neue Regel `.nowplaying .icon-btn.is-on` gilt für beide.
+- **Loop-Modi überarbeitet:** „Playlist-Loop" entfernt — **eine Playlist/Queue
+  spielt jetzt immer weiter und startet am Ende automatisch neu** (bei Shuffle neu
+  gemischt); es gibt nie „keine Musik". Der Loop-Button hat damit drei Zustände:
+  **Aus** · **Aktueller Song ∞** (loopt dauerhaft) · **Aktueller Song 1×** (spielt
+  einmal doppelt, dann weiter). Umsetzung in `MusicEngine` (`advancePosition`
+  wrappt immer; „once" mit Replay-Flag; „one" loopt das Deck nativ). `RepeatMode`
+  ist jetzt `off | one | once`; alte gespeicherte `all`-Werte werden zu `off`
+  gemappt. Neue Playlists starten mit Loop **aus**.
+- **Slider im Figma-Look:** jetzt **rechteckig** (statt abgerundet) mit Cyan-
+  Füllstand und schmalem Leucht-Balken als Knopf.
+- **Regler per Zahl einstellbar:** **Doppelklick auf den %-Wert** neben einem
+  Audio-Regler öffnet ein Eingabefeld — Wert 0–100 eintippen, Enter bestätigt.
+  Praktisch für exaktes Einstellen. Neue i18n-Keys `loop.one` · `loop.once` ·
+  `mixer.editHint`.
 
 ### v0.4.2 – 2026-07-12
 - **Keine Standard-Kampagne mehr:** Ein Clean Install startet ohne Kampagne;
