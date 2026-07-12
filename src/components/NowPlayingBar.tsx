@@ -2,6 +2,7 @@ import { useStore } from "../store/store";
 import { formatTime } from "../lib/format";
 import { useT } from "../lib/i18n";
 import { LoopButton } from "./LoopButton";
+import { ShuffleButton } from "./ShuffleButton";
 import { Icon } from "./Icon";
 
 export function NowPlayingBar() {
@@ -46,6 +47,7 @@ export function NowPlayingBar() {
       {/* Center stack: transport row above the full-width progress line. */}
       <div className="nowplaying__center">
         <div className="nowplaying__controls">
+          <ShuffleButton />
           <button
             className="icon-btn"
             onClick={previous}

@@ -62,15 +62,6 @@ const blankStatus: MusicStatus = {
   queue: [],
 };
 
-const EMPTY_DATA: CampaignData = {
-  tracks: {},
-  playlists: [],
-  ambient: [],
-  soundboard: [],
-  ambientGroups: [],
-  soundboardGroups: [],
-};
-
 function makeCampaign(
   name: string,
   data?: Partial<CampaignData>,
@@ -98,7 +89,6 @@ function normalizeCampaign(c: Partial<Campaign>): Campaign {
     description: c.description,
     tags: c.tags,
     imageFileId: c.imageFileId,
-    isDefault: c.isDefault,
     tracks: c.tracks ?? {},
     playlists: c.playlists ?? [],
     ambient: c.ambient ?? [],
@@ -125,7 +115,6 @@ function normalizeToCampaigns(saved: unknown): {
 
   if (s && Array.isArray(s.campaigns) && s.campaigns.length > 0) {
     const campaigns = (s.campaigns as Partial<Campaign>[]).map(normalizeCampaign);
-    if (!campaigns.some((c) => c.isDefault)) campaigns[0].isDefault = true;
     const savedActive = s.activeCampaignId as string | undefined;
     const activeCampaignId =
       savedActive && campaigns.some((c) => c.id === savedActive)
@@ -134,10 +123,10 @@ function normalizeToCampaigns(saved: unknown): {
     return { campaigns, activeCampaignId };
   }
 
+  // Upgrade a pre-campaigns single-library save into one campaign.
   if (s && (s.tracks || s.playlists || s.ambient || s.soundboard)) {
     const def = normalizeCampaign({
       name: DEFAULT_CAMPAIGN_NAME,
-      isDefault: true,
       tracks: s.tracks as CampaignData["tracks"],
       playlists: s.playlists as CampaignData["playlists"],
       ambient: s.ambient as CampaignData["ambient"],
@@ -146,8 +135,8 @@ function normalizeToCampaigns(saved: unknown): {
     return { campaigns: [def], activeCampaignId: def.id };
   }
 
-  const def = makeCampaign(DEFAULT_CAMPAIGN_NAME, EMPTY_DATA, true);
-  return { campaigns: [def], activeCampaignId: def.id };
+  // Clean install: start with no campaigns — the user creates one from the menu.
+  return { campaigns: [], activeCampaignId: "" };
 }
 
 interface StoreState {
@@ -389,13 +378,11 @@ function settingsOf(pl: Playlist) {
   };
 }
 
-const INITIAL_CAMPAIGN = makeCampaign(DEFAULT_CAMPAIGN_NAME, EMPTY_DATA, true);
-
 export const useStore = create<StoreState>((set, get) => ({
   mixer: DEFAULT_MIXER,
   settings: DEFAULT_SETTINGS,
-  campaigns: [INITIAL_CAMPAIGN],
-  activeCampaignId: INITIAL_CAMPAIGN.id,
+  campaigns: [],
+  activeCampaignId: "",
   tracks: {},
   playlists: [],
   ambient: [],
@@ -462,23 +449,25 @@ export const useStore = create<StoreState>((set, get) => ({
     await ensureMigrated();
     const saved = await loadState();
     const { campaigns, activeCampaignId } = normalizeToCampaigns(saved);
+    // May be null on a clean install (no campaigns yet).
     const active =
-      campaigns.find((c) => c.id === activeCampaignId) ?? campaigns[0];
+      campaigns.find((c) => c.id === activeCampaignId) ?? campaigns[0] ?? null;
     const savedRaw = saved as Partial<PersistedState> | undefined;
     const settings = { ...DEFAULT_SETTINGS, ...(savedRaw?.settings ?? {}) };
     set({
       campaigns,
-      activeCampaignId: active.id,
-      tracks: active.tracks,
-      playlists: active.playlists,
-      ambient: active.ambient,
-      soundboard: active.soundboard,
-      ambientGroups: active.ambientGroups,
-      soundboardGroups: active.soundboardGroups,
+      activeCampaignId: active?.id ?? "",
+      tracks: active?.tracks ?? {},
+      playlists: active?.playlists ?? [],
+      ambient: active?.ambient ?? [],
+      soundboard: active?.soundboard ?? [],
+      ambientGroups: active?.ambientGroups ?? [],
+      soundboardGroups: active?.soundboardGroups ?? [],
       mixer: { ...DEFAULT_MIXER, ...(savedRaw?.mixer ?? {}) },
       settings,
-      // Skip the menu and go straight back into the last campaign, if asked.
-      view: settings.autoOpenLastCampaign ? "campaign" : "menu",
+      // Skip the menu and go straight back into the last campaign, if asked —
+      // but never when there is no campaign to open.
+      view: active && settings.autoOpenLastCampaign ? "campaign" : "menu",
       ready: true,
     });
     // Sync runtime-only flags into the main process (tray, etc.).
@@ -528,23 +517,25 @@ export const useStore = create<StoreState>((set, get) => ({
   deleteCampaign: async (id) => {
     const s = get();
     const target = s.campaigns.find((c) => c.id === id);
-    if (!target || target.isDefault) return; // Standard is non-deletable
+    if (!target) return;
     const remaining = foldActive(s).filter((c) => c.id !== id);
 
     if (id === s.activeCampaignId) {
-      const fallback = remaining.find((c) => c.isDefault) ?? remaining[0];
+      // Fall back to any remaining campaign, or to "no campaign" (menu) when
+      // the last one is deleted.
+      const fallback = remaining[0] ?? null;
       s.music?.stop();
       s.ambientEngine?.stopAll();
       s.soundboard_engine?.stopAllLoops();
       set({
         campaigns: remaining,
-        activeCampaignId: fallback.id,
-        tracks: fallback.tracks,
-        playlists: fallback.playlists,
-        ambient: fallback.ambient,
-        soundboard: fallback.soundboard,
-        ambientGroups: fallback.ambientGroups,
-        soundboardGroups: fallback.soundboardGroups,
+        activeCampaignId: fallback?.id ?? "",
+        tracks: fallback?.tracks ?? {},
+        playlists: fallback?.playlists ?? [],
+        ambient: fallback?.ambient ?? [],
+        soundboard: fallback?.soundboard ?? [],
+        ambientGroups: fallback?.ambientGroups ?? [],
+        soundboardGroups: fallback?.soundboardGroups ?? [],
         activePlaylistId: null,
         status: blankStatus,
         ambientActiveIds: [],

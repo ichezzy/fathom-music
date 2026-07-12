@@ -5,11 +5,36 @@
 > Pläne unter To-Do/Planning nachziehen. Der Gesamtplan steht in `CLAUDE.md`.
 >
 > Kategorien: **Done (Patch-Notes) · In Arbeit · To-Do · Planning · Bugs/Known Issues**.
-> Letzte Aktualisierung: 2026-07-12 · Aktuelle Version: **v0.4.1**
+> Letzte Aktualisierung: 2026-07-12 · Aktuelle Version: **v0.4.2**
 
 ---
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
+
+### v0.4.2 – 2026-07-12
+- **Keine Standard-Kampagne mehr:** Ein Clean Install startet ohne Kampagne;
+  Nutzer legen ihre erste über die „+"-Karte an. Der `isDefault`-Sonderfall
+  (unlöschbare „Standard"-Kampagne) ist entfernt — **jede** Kampagne ist jetzt
+  löschbar, auch die letzte (danach steht man wieder im leeren Menü). Store:
+  `normalizeToCampaigns` liefert bei leerem Speicher `[]`, `hydrate`/
+  `deleteCampaign` kommen mit „keine aktive Kampagne" klar. Bestehende
+  Bibliotheken werden weiter migriert (bleiben erhalten).
+- **Kampagnen-Einstellungen aufgeräumt:** Auch die **Farbauswahl** ist raus
+  (Hintergrundbilder ersetzen sie; ohne Bild bleibt der Tiefen-Gradient als
+  Default). Zusammen mit den zuvor entfernten Icons haben „Neue Kampagne" und
+  die Einstellungen jetzt nur noch Name · Beschreibung · Tags · Hintergrundbild.
+- **Sidebar-Redesign nach Figma:**
+  - **Audio-Regler** mit sichtbarem **Cyan-Füllstand** bis zum leuchtenden Knopf
+    (Gradient über `--pct`, dickerer Track, Glow-Thumb) — vorher nur eine flache
+    Linie.
+  - Neue **Player/Library-Navigation** (Library ist vorerst nur optisch, tut
+    noch nichts) und ein eigener **„Campaign"-Block** über der Nav.
+- **Player-Transport wie im Figma-Design:** **Shuffle**-Button links neben
+  „Vorheriger Titel" (neben dem bestehenden Loop-Button). **Loop-Modus** und
+  **Shuffle** sind aus der Playlist-Ansicht entfernt; der **Crossfade** wandert
+  unter die Audio-Regler in die Sidebar. Die Playlist ist damit reine
+  Titelliste. Loop/Shuffle/Crossfade wirken einheitlich auf die **aktive**
+  (laufende) Playlist — wie schon der Loop-Button zuvor.
 
 ### v0.4.1 – 2026-07-12
 - **Kinematischer Übergang zwischen Hauptmenü und Kampagne** (aus dem Figma-

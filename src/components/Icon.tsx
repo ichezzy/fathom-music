@@ -23,7 +23,10 @@ export type IconName =
   | "chevronLeft"
   | "chevronRight"
   | "more"
-  | "check";
+  | "check"
+  | "music"
+  | "library"
+  | "shuffle";
 
 const P: Record<IconName, JSX.Element> = {
   // Filled shapes for the primary transport controls.
@@ -103,6 +106,28 @@ const P: Record<IconName, JSX.Element> = {
     />
   ),
   check: <path d="M5 12l5 5 9-10" />,
+  music: (
+    <>
+      <path d="M9 18V5l11-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="20" cy="16" r="3" />
+    </>
+  ),
+  library: (
+    <>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </>
+  ),
+  shuffle: (
+    <>
+      <path d="M16 3h5v5" />
+      <path d="M4 20 21 3" />
+      <path d="M21 16v5h-5" />
+      <path d="M15 15l6 6" />
+      <path d="M4 4l5 5" />
+    </>
+  ),
 };
 
 export function Icon({

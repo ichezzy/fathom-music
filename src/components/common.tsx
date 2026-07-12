@@ -10,18 +10,22 @@ interface SliderProps {
 }
 
 export function Slider({ value, onChange, label, ariaLabel }: SliderProps) {
+  const pct = Math.round(value * 100);
   return (
     <label className="slider">
       {label && <span className="slider__label">{label}</span>}
       <input
         type="range"
+        className="slider__range"
         min={0}
         max={100}
-        value={Math.round(value * 100)}
+        value={pct}
+        // Drives the cyan fill up to the thumb (see .slider__range in CSS).
+        style={{ ["--pct" as string]: `${pct}%` }}
         aria-label={ariaLabel ?? label}
         onChange={(e) => onChange(Number(e.target.value) / 100)}
       />
-      <span className="slider__value">{Math.round(value * 100)}</span>
+      <span className="slider__value">{pct}</span>
     </label>
   );
 }

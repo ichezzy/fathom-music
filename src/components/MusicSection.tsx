@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useStore } from "../store/store";
-import type { RepeatMode } from "../types";
 import { useT } from "../lib/i18n";
 import { confirmDelete } from "../lib/confirm";
 import { EditableText, WaveAnim } from "./common";
@@ -110,7 +109,6 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
 
   const renamePlaylist = useStore((s) => s.renamePlaylist);
   const deletePlaylist = useStore((s) => s.deletePlaylist);
-  const updatePlaylist = useStore((s) => s.updatePlaylist);
   const playPlaylist = useStore((s) => s.playPlaylist);
   const removeTrackFromPlaylist = useStore((s) => s.removeTrackFromPlaylist);
   const moveTrackInPlaylist = useStore((s) => s.moveTrackInPlaylist);
@@ -161,9 +159,6 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
     ids.forEach((id) => addTrackToPlaylist(playlist.id, id));
   };
 
-  const setRepeat = (mode: RepeatMode) =>
-    updatePlaylist(playlist.id, { repeat: mode });
-
   const onRemoveTrack = async (index: number) => {
     const trackId = playlist.trackIds[index];
     const trackName =
@@ -203,66 +198,6 @@ function PlaylistDetail({ playlistId }: { playlistId: string }) {
             }}
           >
             <Icon name="trash" size={16} />
-          </button>
-        </div>
-      </div>
-
-      <div className="modes">
-        <div className="modes__group">
-          <span className="modes__title">{t("music.loopMode")}</span>
-          <div className="seg">
-            {(["off", "all", "one"] as RepeatMode[]).map((mode) => (
-              <button
-                key={mode}
-                className={`seg__btn${playlist.repeat === mode ? " is-on" : ""}`}
-                onClick={() => setRepeat(mode)}
-              >
-                {t(`music.loop.${mode}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="modes__group">
-          <span className="modes__title">{t("music.transition")}</span>
-          <div className="modes__row">
-            <button
-              className={`toggle${playlist.crossfade ? " is-on" : ""}`}
-              onClick={() =>
-                updatePlaylist(playlist.id, { crossfade: !playlist.crossfade })
-              }
-            >
-              <span className="toggle__dot" />
-              {playlist.crossfade ? t("music.crossfadeOn") : t("music.hardCut")}
-            </button>
-            <label className="cf-seconds">
-              <input
-                type="range"
-                min={1}
-                max={15}
-                value={playlist.crossfadeSeconds}
-                disabled={!playlist.crossfade}
-                onChange={(e) =>
-                  updatePlaylist(playlist.id, {
-                    crossfadeSeconds: Number(e.target.value),
-                  })
-                }
-              />
-              <span>{playlist.crossfadeSeconds}s</span>
-            </label>
-          </div>
-        </div>
-
-        <div className="modes__group">
-          <span className="modes__title">{t("music.shuffle")}</span>
-          <button
-            className={`toggle${playlist.shuffle ? " is-on" : ""}`}
-            onClick={() =>
-              updatePlaylist(playlist.id, { shuffle: !playlist.shuffle })
-            }
-          >
-            <span className="toggle__dot" />
-            {playlist.shuffle ? t("music.on") : t("music.off")}
           </button>
         </div>
       </div>

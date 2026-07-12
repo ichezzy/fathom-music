@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store/store";
 import { useT } from "../lib/i18n";
-import { CAMPAIGN_COLORS } from "../lib/format";
 import { desktop } from "../lib/desktop";
 import { askConfirm } from "../lib/confirm";
 import { deleteFile, getFileUrl, putFile } from "../lib/db";
 import { uid } from "../lib/id";
 import { Icon } from "./Icon";
 import type { Campaign } from "../types";
-import { ColorPicker, EditableText, Modal } from "./common";
+import { EditableText, Modal } from "./common";
 import { SettingsModal } from "./SettingsModal";
 import logo from "../assets/logo.png";
 
@@ -134,18 +133,16 @@ export function MainMenu() {
                 >
                   <Icon name="settings" size={14} />
                 </button>
-                {!c.isDefault && (
-                  <button
-                    className="icon-btn icon-btn--mini"
-                    title={t("menu.delete")}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(c);
-                    }}
-                  >
-                    <Icon name="trash" size={14} />
-                  </button>
-                )}
+                <button
+                  className="icon-btn icon-btn--mini"
+                  title={t("menu.delete")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(c);
+                  }}
+                >
+                  <Icon name="trash" size={14} />
+                </button>
               </span>
             </li>
           );
@@ -250,7 +247,6 @@ function CampaignSettingsModal({
   const [description, setDescription] = useState(campaign.description ?? "");
   const [tags, setTags] = useState<string[]>(campaign.tags ?? []);
   const [tagInput, setTagInput] = useState("");
-  const [color, setColor] = useState(campaign.color ?? CAMPAIGN_COLORS[0]);
   // Image changes are staged locally and only written on save.
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageRemoved, setImageRemoved] = useState(false);
@@ -297,7 +293,6 @@ function CampaignSettingsModal({
       name,
       description: description.trim(),
       tags,
-      color,
       imageFileId,
     });
     onClose();
@@ -409,14 +404,6 @@ function CampaignSettingsModal({
         </div>
         <p className="field__hint">{t("campaign.imageHint")}</p>
       </div>
-      <div className="field">
-        <span>{t("menu.color")}</span>
-        <ColorPicker
-          colors={CAMPAIGN_COLORS}
-          value={color}
-          onChange={setColor}
-        />
-      </div>
       <button className="btn" onClick={() => void onSave()}>
         {t("common.save")}
       </button>
@@ -430,10 +417,9 @@ function NewCampaignModal({ onClose }: { onClose: () => void }) {
   const openCampaign = useStore((s) => s.openCampaign);
 
   const [name, setName] = useState("");
-  const [color, setColor] = useState(CAMPAIGN_COLORS[0]);
 
   const onCreate = () => {
-    const id = createCampaign(name, undefined, color);
+    const id = createCampaign(name);
     if (id) openCampaign(id);
     onClose();
   };
@@ -453,14 +439,6 @@ function NewCampaignModal({ onClose }: { onClose: () => void }) {
           }}
         />
       </label>
-      <div className="field">
-        <span>{t("menu.color")}</span>
-        <ColorPicker
-          colors={CAMPAIGN_COLORS}
-          value={color}
-          onChange={setColor}
-        />
-      </div>
       <button className="btn" onClick={onCreate}>
         {t("menu.create")}
       </button>

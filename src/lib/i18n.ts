@@ -13,6 +13,11 @@ type Dict = Record<string, string>;
 
 const de: Dict = {
   "app.subtitle": "Tauche in deine Welt ein",
+  "sidebar.campaign": "Kampagne",
+  "nav.player": "Player",
+  "nav.library": "Bibliothek",
+  "music.shuffleOn": "Zufall an",
+  "music.shuffleOff": "Zufall aus",
   "mixer.master": "Master",
   "mixer.music": "Musik",
   "mixer.ambient": "Ambient",
@@ -211,6 +216,11 @@ const de: Dict = {
 
 const en: Dict = {
   "app.subtitle": "Dive into your world",
+  "sidebar.campaign": "Campaign",
+  "nav.player": "Player",
+  "nav.library": "Library",
+  "music.shuffleOn": "Shuffle on",
+  "music.shuffleOff": "Shuffle off",
   "mixer.master": "Master",
   "mixer.music": "Music",
   "mixer.ambient": "Ambient",
@@ -409,6 +419,11 @@ const en: Dict = {
 // back to English automatically — a native-speaker review is welcome.
 const fr: Dict = {
   "app.subtitle": "Console audio TTRPG",
+  "sidebar.campaign": "Campagne",
+  "nav.player": "Lecteur",
+  "nav.library": "Bibliothèque",
+  "music.shuffleOn": "Aléatoire activé",
+  "music.shuffleOff": "Aléatoire désactivé",
   "mixer.master": "Master",
   "mixer.music": "Musique",
   "mixer.ambient": "Ambiance",
@@ -498,6 +513,11 @@ const fr: Dict = {
 
 const es: Dict = {
   "app.subtitle": "Consola de audio TTRPG",
+  "sidebar.campaign": "Campaña",
+  "nav.player": "Reproductor",
+  "nav.library": "Biblioteca",
+  "music.shuffleOn": "Aleatorio activado",
+  "music.shuffleOff": "Aleatorio desactivado",
   "mixer.master": "Master",
   "mixer.music": "Música",
   "mixer.ambient": "Ambiente",
@@ -587,6 +607,11 @@ const es: Dict = {
 
 const it: Dict = {
   "app.subtitle": "Console audio TTRPG",
+  "sidebar.campaign": "Campagna",
+  "nav.player": "Player",
+  "nav.library": "Libreria",
+  "music.shuffleOn": "Casuale attivo",
+  "music.shuffleOff": "Casuale disattivato",
   "mixer.master": "Master",
   "mixer.music": "Musica",
   "mixer.ambient": "Ambiente",
