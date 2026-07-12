@@ -12,7 +12,7 @@ export function Sidebar() {
   const t = useT();
   const mixer = useStore((s) => s.mixer);
   const setMixer = useStore((s) => s.setMixer);
-  const setView = useStore((s) => s.setView);
+  const beginExitTransition = useStore((s) => s.beginExitTransition);
   const setMiniPlayer = useStore((s) => s.setMiniPlayer);
   const renameCampaign = useStore((s) => s.renameCampaign);
   const activeCampaignId = useStore((s) => s.activeCampaignId);
@@ -39,7 +39,7 @@ export function Sidebar() {
           className="icon-btn icon-btn--mini"
           title={t("menu.back")}
           aria-label={t("menu.back")}
-          onClick={() => setView("menu")}
+          onClick={() => beginExitTransition()}
         >
           <Icon name="back" size={16} />
         </button>

@@ -65,6 +65,112 @@
   }
 }
 
+/* ---------- Campaign "dive" transition (menu → campaign) ---------- */
+/* Overlay eases up from a slightly shrunk card into a full-bleed image. */
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* Campaign name rises and tightens into place. */
+@keyframes titleIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    letter-spacing: 0.2em;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: 0.06em;
+  }
+}
+/* Flavor text surfaces just after the title. */
+@keyframes subtitleIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    color: rgba(196, 228, 242, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    color: rgba(196, 228, 242, 0.65);
+  }
+}
+/* Scrolls the wave SVGs sideways across the water's leading edge. */
+@keyframes waveShift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+/* Light rays flickering through the deep. */
+@keyframes lightRay {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+/* Bubbles drifting up as the screen submerges. */
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-340px) scale(1.1);
+    opacity: 0;
+  }
+}
+/* Loading mark bobbing on the water in the transition's corner. */
+@keyframes floatBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3.5deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(3.5deg);
+  }
+}
+/* Player emerging from the dark once the campaign view mounts. */
+@keyframes playerReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.app--reveal {
+  animation: playerReveal 0.9s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-transition,
+  .campaign-transition * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .app--reveal {
+    animation: none;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

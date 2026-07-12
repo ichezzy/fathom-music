@@ -5,11 +5,63 @@
 > Pläne unter To-Do/Planning nachziehen. Der Gesamtplan steht in `CLAUDE.md`.
 >
 > Kategorien: **Done (Patch-Notes) · In Arbeit · To-Do · Planning · Bugs/Known Issues**.
-> Letzte Aktualisierung: 2026-07-10 · Aktuelle Version: **v0.4.0**
+> Letzte Aktualisierung: 2026-07-12 · Aktuelle Version: **v0.4.1**
 
 ---
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
+
+### v0.4.1 – 2026-07-12
+- **Kinematischer Übergang zwischen Hauptmenü und Kampagne** (aus dem Figma-
+  Prototyp umgesetzt, an die echte App angepasst und erweitert). Gesteuert
+  über einen `SPEED`-Faktor (aktuell 2 = doppeltes Tempo, ~8,4 s pro Sequenz);
+  Timeline und CSS-Übergänge skalieren gemeinsam, Tempo also an **einer**
+  Stelle einstellbar.
+  - **„Dive" (Menü → Kampagne)** beim Anklicken einer Kampagnenkarte:
+    1. **Expanding:** das Kampagnenbild zoomt sanft auf Vollbild (ohne Bild
+       der Fathom-W20 auf Tiefen-Gradient).
+    2. **Title:** Kampagnenname, Tags und Beschreibung tauchen auf, darunter
+       ein pulsierendes „Bereit zum Abtauchen".
+    3. **Diving:** das Bild taucht nach oben ab, dunkles Wasser fährt mit zwei
+       versetzten SVG-Wellen, Lichtstrahlen und aufsteigenden Blasen herein
+       (Indikator „↓ Abtauchen ↓").
+    4. **Dark:** dunkelblau-schwarzer Bildschirm mit pulsierender Fathom-Marke.
+    5. Danach Kampagnenansicht + sanftes Einblenden des Players (`playerReveal`).
+  - **„Surface" (Kampagne → Menü)** über den Zurück-Pfeil in der Sidebar –
+    ein **schnelles Auftauchen** (~3 s) vom Player zum Hauptmenü: der Player
+    versinkt im Dunkel, dann zieht sich das dunkle Wasser rasch nach **oben**
+    zurück und gibt das darunter liegende Menü frei (Blasen steigen auf). Es
+    wird **bewusst kein Kampagnen-Hintergrund** mehr gezeigt – der Menü-Wechsel
+    passiert verdeckt, während das Wasser voll deckend ist (`enterMenuBehind`).
+  - Umsetzung: `src/components/CampaignTransition.tsx` (ein Overlay für beide
+    Richtungen, `direction`-gesteuert; permanent in `App` gemountet, rendert
+    nur bei aktivem Übergang), Store-Felder/Aktionen `transitionMode` ·
+    `transitionCampaignId` · `playerRevealing` · `beginCampaignTransition` ·
+    `endCampaignTransition` · `beginExitTransition` · `enterMenuBehind` ·
+    `endExitTransition`, Keyframes in `index.css` (`overlayIn` · `titleIn` ·
+    `subtitleIn` · `waveShift` · `lightRay` · `bubbleRise` · `playerReveal` ·
+    `floatBob`), i18n-Keys `menu.preparingDive` und `common.loading` in allen
+    5 Sprachen.
+  - **Feinschliff:** die eigentliche Tauchphase („Diving") läuft schneller
+    (Dark-Phase ab ~6,4 s statt ~7,1 s); die künstlich wirkenden Text-
+    Indikatoren „↓ Diving ↓" / „↑ Surfacing ↑" wurden entfernt; beim Auftauchen
+    erscheint **nicht** noch einmal der Kampagnenname (nur beim Abtauchen);
+    unten rechts schwebt während der Animation die **Fathom-Marke wie auf dem
+    Wasser auf und ab** (`floatBob`) mit „Loading…" darunter — ein Lade-
+    Indikator, der den Übergang als Ladescreen lesbar macht.
+- **Kampagnen-Icons entfernt:** Da Kampagnen jetzt Hintergrundbilder haben, ist
+  die Emoji-Icon-Auswahl in „Neue Kampagne" und den Kampagnen-Einstellungen
+  weggefallen (`src/components/MainMenu.tsx`; ungenutzte `CAMPAIGN_ICONS` aus
+  `src/lib/format.ts` entfernt). Das `icon`-Feld im Datenmodell bleibt (harmlos,
+  wird nur nicht mehr angezeigt/gesetzt).
+  - **`prefers-reduced-motion`:** kein Ab-/Auftauchen — nur kurzer Moment, dann
+    Wechsel; Overlay-Animationen werden per Media-Query neutralisiert.
+  - Hintergrundbild wird als Blob aus dem Dateispeicher geladen (`getFileUrl`),
+    Overlay liegt über der Titelleiste (`z-index 1001`).
+- **Settings-Icon ist jetzt ein Zahnrad** (`src/components/Icon.tsx`): das alte
+  Icon (Kreis mit radialen Strahlen) sah wie eine **Sonne** aus; ersetzt durch
+  ein echtes Zahnrad (gekerbter Ring + Nabe). Betrifft alle „Einstellungen"-
+  Buttons (Hauptmenü, Sidebar, Kampagnen-Karten).
 
 ### v0.4.0 – 2026-07-10
 - **Vollständiges Rebranding zu Fathom Music:** `package.json`-Name und

@@ -192,6 +192,19 @@ interface StoreState {
   setView: (view: "menu" | "campaign") => void;
   openCampaign: (id: string) => void;
   setMiniPlayer: (on: boolean) => void;
+  // Cinematic transition between menu and campaign. "dive" plays over the menu
+  // when opening a campaign (sink down into it); "surface" plays over the
+  // campaign when leaving it (rise back up to the menu). transitionCampaignId
+  // is the campaign whose artwork the overlay shows.
+  transitionMode: "dive" | "surface" | null;
+  transitionCampaignId: string | null;
+  playerRevealing: boolean;
+  beginCampaignTransition: (id: string) => void;
+  endCampaignTransition: () => void;
+  beginExitTransition: () => void;
+  enterMenuBehind: () => void;
+  endExitTransition: () => void;
+  clearPlayerRevealing: () => void;
 
   // Campaigns
   createCampaign: (name: string, icon?: string, color?: string) => string | null;
@@ -401,6 +414,9 @@ export const useStore = create<StoreState>((set, get) => ({
   confirmRequest: null,
   view: "menu",
   miniPlayer: false,
+  transitionMode: null,
+  transitionCampaignId: null,
+  playerRevealing: false,
   queueOpen: false,
   ambientMinimized: false,
   soundboardMinimized: false,
@@ -410,6 +426,31 @@ export const useStore = create<StoreState>((set, get) => ({
     get().setActiveCampaign(id);
     set({ view: "campaign" });
   },
+  beginCampaignTransition: (id) =>
+    set({ transitionCampaignId: id, transitionMode: "dive" }),
+  endCampaignTransition: () => {
+    const id = get().transitionCampaignId;
+    if (id) get().setActiveCampaign(id);
+    set({
+      view: "campaign",
+      transitionCampaignId: null,
+      transitionMode: null,
+      playerRevealing: true,
+    });
+  },
+  // Leaving a campaign: the view stays on the player while the overlay fades
+  // in over it, then rises back up to the menu.
+  beginExitTransition: () =>
+    set({
+      transitionCampaignId: get().activeCampaignId,
+      transitionMode: "surface",
+    }),
+  // Swap the player out for the menu while the overlay is fully opaque, so the
+  // switch is hidden and the menu is already in place when the overlay clears.
+  enterMenuBehind: () => set({ view: "menu" }),
+  endExitTransition: () =>
+    set({ transitionCampaignId: null, transitionMode: null }),
+  clearPlayerRevealing: () => set({ playerRevealing: false }),
   setMiniPlayer: (on) => {
     set({ miniPlayer: on });
     void desktopBridge?.setMiniPlayer(on);
