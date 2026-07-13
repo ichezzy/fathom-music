@@ -5,11 +5,107 @@
 > Pläne unter To-Do/Planning nachziehen. Der Gesamtplan steht in `CLAUDE.md`.
 >
 > Kategorien: **Done (Patch-Notes) · In Arbeit · To-Do · Planning · Bugs/Known Issues**.
-> Letzte Aktualisierung: 2026-07-10 · Aktuelle Version: **v0.4.0**
+> Letzte Aktualisierung: 2026-07-12 · Aktuelle Version: **v0.4.3**
 
 ---
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
+
+### v0.4.3 – 2026-07-12
+- **Loop/Shuffle-Icons zeigen jetzt klar an/aus:** Symbol **matt-grau wenn aus**,
+  **hell-cyan leuchtend (Glow) wenn an**. Vorher leuchtete Loop immer und Shuffle
+  blieb immer grau — die neue Regel `.nowplaying .icon-btn.is-on` gilt für beide.
+- **Loop-Modi überarbeitet:** „Playlist-Loop" entfernt — **eine Playlist/Queue
+  spielt jetzt immer weiter und startet am Ende automatisch neu** (bei Shuffle neu
+  gemischt); es gibt nie „keine Musik". Der Loop-Button hat damit drei Zustände:
+  **Aus** · **Aktueller Song ∞** (loopt dauerhaft) · **Aktueller Song 1×** (spielt
+  einmal doppelt, dann weiter). Umsetzung in `MusicEngine` (`advancePosition`
+  wrappt immer; „once" mit Replay-Flag; „one" loopt das Deck nativ). `RepeatMode`
+  ist jetzt `off | one | once`; alte gespeicherte `all`-Werte werden zu `off`
+  gemappt. Neue Playlists starten mit Loop **aus**.
+- **Slider im Figma-Look:** jetzt **rechteckig** (statt abgerundet) mit Cyan-
+  Füllstand und schmalem Leucht-Balken als Knopf.
+- **Regler per Zahl einstellbar:** **Doppelklick auf den %-Wert** neben einem
+  Audio-Regler öffnet ein Eingabefeld — Wert 0–100 eintippen, Enter bestätigt.
+  Praktisch für exaktes Einstellen. Neue i18n-Keys `loop.one` · `loop.once` ·
+  `mixer.editHint`.
+
+### v0.4.2 – 2026-07-12
+- **Keine Standard-Kampagne mehr:** Ein Clean Install startet ohne Kampagne;
+  Nutzer legen ihre erste über die „+"-Karte an. Der `isDefault`-Sonderfall
+  (unlöschbare „Standard"-Kampagne) ist entfernt — **jede** Kampagne ist jetzt
+  löschbar, auch die letzte (danach steht man wieder im leeren Menü). Store:
+  `normalizeToCampaigns` liefert bei leerem Speicher `[]`, `hydrate`/
+  `deleteCampaign` kommen mit „keine aktive Kampagne" klar. Bestehende
+  Bibliotheken werden weiter migriert (bleiben erhalten).
+- **Kampagnen-Einstellungen aufgeräumt:** Auch die **Farbauswahl** ist raus
+  (Hintergrundbilder ersetzen sie; ohne Bild bleibt der Tiefen-Gradient als
+  Default). Zusammen mit den zuvor entfernten Icons haben „Neue Kampagne" und
+  die Einstellungen jetzt nur noch Name · Beschreibung · Tags · Hintergrundbild.
+- **Sidebar-Redesign nach Figma:**
+  - **Audio-Regler** mit sichtbarem **Cyan-Füllstand** bis zum leuchtenden Knopf
+    (Gradient über `--pct`, dickerer Track, Glow-Thumb) — vorher nur eine flache
+    Linie.
+  - Neue **Player/Library-Navigation** (Library ist vorerst nur optisch, tut
+    noch nichts) und ein eigener **„Campaign"-Block** über der Nav.
+- **Player-Transport wie im Figma-Design:** **Shuffle**-Button links neben
+  „Vorheriger Titel" (neben dem bestehenden Loop-Button). **Loop-Modus** und
+  **Shuffle** sind aus der Playlist-Ansicht entfernt; der **Crossfade** wandert
+  unter die Audio-Regler in die Sidebar. Die Playlist ist damit reine
+  Titelliste. Loop/Shuffle/Crossfade wirken einheitlich auf die **aktive**
+  (laufende) Playlist — wie schon der Loop-Button zuvor.
+
+### v0.4.1 – 2026-07-12
+- **Kinematischer Übergang zwischen Hauptmenü und Kampagne** (aus dem Figma-
+  Prototyp umgesetzt, an die echte App angepasst und erweitert). Gesteuert
+  über einen `SPEED`-Faktor (aktuell 2 = doppeltes Tempo, ~8,4 s pro Sequenz);
+  Timeline und CSS-Übergänge skalieren gemeinsam, Tempo also an **einer**
+  Stelle einstellbar.
+  - **„Dive" (Menü → Kampagne)** beim Anklicken einer Kampagnenkarte:
+    1. **Expanding:** das Kampagnenbild zoomt sanft auf Vollbild (ohne Bild
+       der Fathom-W20 auf Tiefen-Gradient).
+    2. **Title:** Kampagnenname, Tags und Beschreibung tauchen auf, darunter
+       ein pulsierendes „Bereit zum Abtauchen".
+    3. **Diving:** das Bild taucht nach oben ab, dunkles Wasser fährt mit zwei
+       versetzten SVG-Wellen, Lichtstrahlen und aufsteigenden Blasen herein
+       (Indikator „↓ Abtauchen ↓").
+    4. **Dark:** dunkelblau-schwarzer Bildschirm mit pulsierender Fathom-Marke.
+    5. Danach Kampagnenansicht + sanftes Einblenden des Players (`playerReveal`).
+  - **„Surface" (Kampagne → Menü)** über den Zurück-Pfeil in der Sidebar –
+    ein **schnelles Auftauchen** (~3 s) vom Player zum Hauptmenü: der Player
+    versinkt im Dunkel, dann zieht sich das dunkle Wasser rasch nach **oben**
+    zurück und gibt das darunter liegende Menü frei (Blasen steigen auf). Es
+    wird **bewusst kein Kampagnen-Hintergrund** mehr gezeigt – der Menü-Wechsel
+    passiert verdeckt, während das Wasser voll deckend ist (`enterMenuBehind`).
+  - Umsetzung: `src/components/CampaignTransition.tsx` (ein Overlay für beide
+    Richtungen, `direction`-gesteuert; permanent in `App` gemountet, rendert
+    nur bei aktivem Übergang), Store-Felder/Aktionen `transitionMode` ·
+    `transitionCampaignId` · `playerRevealing` · `beginCampaignTransition` ·
+    `endCampaignTransition` · `beginExitTransition` · `enterMenuBehind` ·
+    `endExitTransition`, Keyframes in `index.css` (`overlayIn` · `titleIn` ·
+    `subtitleIn` · `waveShift` · `lightRay` · `bubbleRise` · `playerReveal` ·
+    `floatBob`), i18n-Keys `menu.preparingDive` und `common.loading` in allen
+    5 Sprachen.
+  - **Feinschliff:** die eigentliche Tauchphase („Diving") läuft schneller
+    (Dark-Phase ab ~6,4 s statt ~7,1 s); die künstlich wirkenden Text-
+    Indikatoren „↓ Diving ↓" / „↑ Surfacing ↑" wurden entfernt; beim Auftauchen
+    erscheint **nicht** noch einmal der Kampagnenname (nur beim Abtauchen);
+    unten rechts schwebt während der Animation die **Fathom-Marke wie auf dem
+    Wasser auf und ab** (`floatBob`) mit „Loading…" darunter — ein Lade-
+    Indikator, der den Übergang als Ladescreen lesbar macht.
+- **Kampagnen-Icons entfernt:** Da Kampagnen jetzt Hintergrundbilder haben, ist
+  die Emoji-Icon-Auswahl in „Neue Kampagne" und den Kampagnen-Einstellungen
+  weggefallen (`src/components/MainMenu.tsx`; ungenutzte `CAMPAIGN_ICONS` aus
+  `src/lib/format.ts` entfernt). Das `icon`-Feld im Datenmodell bleibt (harmlos,
+  wird nur nicht mehr angezeigt/gesetzt).
+  - **`prefers-reduced-motion`:** kein Ab-/Auftauchen — nur kurzer Moment, dann
+    Wechsel; Overlay-Animationen werden per Media-Query neutralisiert.
+  - Hintergrundbild wird als Blob aus dem Dateispeicher geladen (`getFileUrl`),
+    Overlay liegt über der Titelleiste (`z-index 1001`).
+- **Settings-Icon ist jetzt ein Zahnrad** (`src/components/Icon.tsx`): das alte
+  Icon (Kreis mit radialen Strahlen) sah wie eine **Sonne** aus; ersetzt durch
+  ein echtes Zahnrad (gekerbter Ring + Nabe). Betrifft alle „Einstellungen"-
+  Buttons (Hauptmenü, Sidebar, Kampagnen-Karten).
 
 ### v0.4.0 – 2026-07-10
 - **Vollständiges Rebranding zu Fathom Music:** `package.json`-Name und

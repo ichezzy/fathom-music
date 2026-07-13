@@ -10,6 +10,7 @@ export type IconName =
   | "next"
   | "repeat"
   | "repeatOne"
+  | "repeatInfinite"
   | "queue"
   | "settings"
   | "back"
@@ -23,7 +24,10 @@ export type IconName =
   | "chevronLeft"
   | "chevronRight"
   | "more"
-  | "check";
+  | "check"
+  | "music"
+  | "library"
+  | "shuffle";
 
 const P: Record<IconName, JSX.Element> = {
   // Filled shapes for the primary transport controls.
@@ -72,13 +76,32 @@ const P: Record<IconName, JSX.Element> = {
       </text>
     </>
   ),
+  // Loop arrows with an ∞ mark — repeat the current track forever.
+  repeatInfinite: (
+    <>
+      <path d="M17 2l3 3-3 3M7 22l-3-3 3-3M20 5H8a4 4 0 00-4 4v1M4 19h12a4 4 0 004-4v-1" />
+      <text
+        x="12"
+        y="15.5"
+        fontSize="9"
+        fontWeight="700"
+        textAnchor="middle"
+        fill="currentColor"
+        stroke="none"
+      >
+        ∞
+      </text>
+    </>
+  ),
   queue: (
     <path d="M4 6h11M4 12h11M4 18h7M17 14v6M20 15l-3-1 3-1" />
   ),
+  // A proper cog: notched outer ring + center hub (the old version read as a
+  // sun because it was just a circle with radial spokes).
   settings: (
     <>
-      <circle cx="12" cy="12" r="3.2" />
-      <path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6" />
+      <circle cx="12" cy="12" r="3.1" />
+      <path d="M19.4 13a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </>
   ),
   back: <path d="M15 18l-6-6 6-6" />,
@@ -101,6 +124,28 @@ const P: Record<IconName, JSX.Element> = {
     />
   ),
   check: <path d="M5 12l5 5 9-10" />,
+  music: (
+    <>
+      <path d="M9 18V5l11-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="20" cy="16" r="3" />
+    </>
+  ),
+  library: (
+    <>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </>
+  ),
+  shuffle: (
+    <>
+      <path d="M16 3h5v5" />
+      <path d="M4 20 21 3" />
+      <path d="M21 16v5h-5" />
+      <path d="M15 15l6 6" />
+      <path d="M4 4l5 5" />
+    </>
+  ),
 };
 
 export function Icon({

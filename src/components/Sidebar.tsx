@@ -7,12 +7,12 @@ import { SettingsModal } from "./SettingsModal";
 import { Icon } from "./Icon";
 import logo from "../assets/logo.png";
 
-/** Left navigation rail: brand, live mixer, and app actions. */
+/** Left navigation rail: brand, campaign, nav, live mixer, and app actions. */
 export function Sidebar() {
   const t = useT();
   const mixer = useStore((s) => s.mixer);
   const setMixer = useStore((s) => s.setMixer);
-  const setView = useStore((s) => s.setView);
+  const beginExitTransition = useStore((s) => s.beginExitTransition);
   const setMiniPlayer = useStore((s) => s.setMiniPlayer);
   const renameCampaign = useStore((s) => s.renameCampaign);
   const activeCampaignId = useStore((s) => s.activeCampaignId);
@@ -22,6 +22,8 @@ export function Sidebar() {
   const showMini = Boolean(desktop);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [version, setVersion] = useState<string | null>(null);
+  // Library is a placeholder view for now; the toggle is purely visual.
+  const [nav, setNav] = useState<"player" | "library">("player");
 
   useEffect(() => {
     if (!desktop) return;
@@ -39,22 +41,41 @@ export function Sidebar() {
           className="icon-btn icon-btn--mini"
           title={t("menu.back")}
           aria-label={t("menu.back")}
-          onClick={() => setView("menu")}
+          onClick={() => beginExitTransition()}
         >
           <Icon name="back" size={16} />
         </button>
         <img className="sidebar__mark" src={logo} alt="" aria-hidden />
-        <div className="sidebar__brand-text">
-          <span className="sidebar__app">Fathom</span>
-          <EditableText
-            className="sidebar__campaign"
-            inputClassName="sidebar__campaign sidebar__campaign--input"
-            value={campaignName || t("app.subtitle")}
-            title={t("music.renameHint")}
-            onSubmit={(next) => renameCampaign(activeCampaignId, next)}
-          />
-        </div>
+        <span className="sidebar__app">Fathom</span>
       </div>
+
+      <div className="sidebar__campaign-block">
+        <span className="sidebar__section">{t("sidebar.campaign")}</span>
+        <EditableText
+          className="sidebar__campaign"
+          inputClassName="sidebar__campaign sidebar__campaign--input"
+          value={campaignName || t("app.subtitle")}
+          title={t("music.renameHint")}
+          onSubmit={(next) => renameCampaign(activeCampaignId, next)}
+        />
+      </div>
+
+      <nav className="sidebar__nav">
+        <button
+          className={`sidebar__nav-item${nav === "player" ? " is-active" : ""}`}
+          onClick={() => setNav("player")}
+        >
+          <Icon name="music" size={16} />
+          {t("nav.player")}
+        </button>
+        <button
+          className={`sidebar__nav-item${nav === "library" ? " is-active" : ""}`}
+          onClick={() => setNav("library")}
+        >
+          <Icon name="library" size={16} />
+          {t("nav.library")}
+        </button>
+      </nav>
 
       <div className="sidebar__mixer">
         <span className="sidebar__label">{t("settings.tab.audio")}</span>
@@ -78,6 +99,7 @@ export function Sidebar() {
           value={mixer.soundboard}
           onChange={(v) => setMixer({ soundboard: v })}
         />
+        <SidebarCrossfade />
       </div>
 
       <div className="sidebar__spacer" />
@@ -106,5 +128,53 @@ export function Sidebar() {
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </aside>
+  );
+}
+
+/**
+ * Crossfade control for the active playlist, moved out of the playlist view so
+ * that view stays a pure track list. Sits under the audio mixer.
+ */
+function SidebarCrossfade() {
+  const t = useT();
+  const activePlaylistId = useStore((s) => s.activePlaylistId);
+  const playlist = useStore((s) =>
+    s.playlists.find((p) => p.id === s.activePlaylistId),
+  );
+  const updatePlaylist = useStore((s) => s.updatePlaylist);
+
+  const disabled = !activePlaylistId || !playlist;
+  const on = Boolean(playlist?.crossfade);
+
+  return (
+    <div className="sidebar__crossfade">
+      <span className="sidebar__label">{t("music.transition")}</span>
+      <button
+        className={`toggle toggle--full${on ? " is-on" : ""}`}
+        disabled={disabled}
+        onClick={() =>
+          playlist && updatePlaylist(playlist.id, { crossfade: !on })
+        }
+      >
+        <span className="toggle__dot" />
+        {on ? t("music.crossfadeOn") : t("music.hardCut")}
+      </button>
+      {on && playlist && (
+        <label className="cf-seconds">
+          <input
+            type="range"
+            min={1}
+            max={15}
+            value={playlist.crossfadeSeconds}
+            onChange={(e) =>
+              updatePlaylist(playlist.id, {
+                crossfadeSeconds: Number(e.target.value),
+              })
+            }
+          />
+          <span>{playlist.crossfadeSeconds}s</span>
+        </label>
+      )}
+    </div>
   );
 }

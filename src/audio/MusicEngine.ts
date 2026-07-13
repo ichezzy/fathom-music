@@ -46,6 +46,8 @@ export class MusicEngine {
   private durationSec = 0;
   private crossfadeArmed = false;
   private transitioning = false;
+  /** For repeat "once": whether the current track already got its extra play. */
+  private replayedCurrent = false;
 
   private outputScale = 1;
   private settings: MusicSettings = { ...DEFAULT_SETTINGS };
@@ -174,6 +176,9 @@ export class MusicEngine {
     this.settings = { ...this.settings, ...partial };
     if (partial.repeat !== undefined) {
       this.activeDeck.setLoop(this.settings.repeat === "one");
+      // Give the current track a fresh "once" allowance whenever the mode
+      // changes (so toggling to "once" replays the current track next).
+      this.replayedCurrent = false;
     }
     if (partial.shuffle !== undefined && partial.shuffle !== prevShuffle) {
       this.rebuildOrder(true);
@@ -230,11 +235,17 @@ export class MusicEngine {
     );
   }
 
-  private async transitionTo(position: number, fadeMs: number): Promise<void> {
+  private async transitionTo(
+    position: number,
+    fadeMs: number,
+    isReplay = false,
+  ): Promise<void> {
     const idx = this.order[position];
     const track = this.tracks[idx];
     if (!track) return;
 
+    // Landing on a genuinely new track resets its "once" allowance.
+    if (!isReplay) this.replayedCurrent = false;
     this.transitioning = true;
     const incoming = this.idleDeck;
     const outgoing = this.activeDeck;
@@ -283,13 +294,15 @@ export class MusicEngine {
     if (!this.settings.crossfade || this.crossfadeArmed || this.transitioning) {
       return;
     }
+    // "one" loops the deck natively; "once" replays with a hard cut first.
     if (this.settings.repeat === "one") return;
+    if (this.settings.repeat === "once" && !this.replayedCurrent) return;
     if (this.durationSec <= 0) return;
 
     const remaining = this.durationSec - this.currentSec;
     const cf = this.settings.crossfadeSeconds;
     if (remaining > 0 && remaining <= cf) {
-      const nextPos = this.naturalNextPosition();
+      const nextPos = this.advancePosition();
       if (nextPos !== null) {
         this.crossfadeArmed = true;
         void this.transitionTo(nextPos, Math.min(cf, remaining) * 1000);
@@ -299,7 +312,13 @@ export class MusicEngine {
 
   private handleEnded(): void {
     if (this.transitioning) return;
-    const nextPos = this.naturalNextPosition();
+    // Repeat the current track one extra time before moving on.
+    if (this.settings.repeat === "once" && !this.replayedCurrent) {
+      this.replayedCurrent = true;
+      void this.transitionTo(this.position, 0, true);
+      return;
+    }
+    const nextPos = this.advancePosition();
     if (nextPos === null) {
       this.playing = false;
       this.activeDeck.stop();
@@ -309,11 +328,16 @@ export class MusicEngine {
     void this.transitionTo(nextPos, 0);
   }
 
-  private naturalNextPosition(): number | null {
+  /**
+   * The next position to play. A playlist never just stops: at the end it
+   * wraps back to the start (reshuffling first when shuffle is on).
+   */
+  private advancePosition(): number | null {
     const n = this.order.length;
     if (n === 0) return null;
     if (this.position < n - 1) return this.position + 1;
-    return this.settings.repeat === "all" ? 0 : null;
+    if (this.settings.shuffle) this.rebuildOrder(false);
+    return 0;
   }
 
   async next(): Promise<void> {

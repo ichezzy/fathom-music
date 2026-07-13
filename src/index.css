@@ -65,6 +65,112 @@
   }
 }
 
+/* ---------- Campaign "dive" transition (menu → campaign) ---------- */
+/* Overlay eases up from a slightly shrunk card into a full-bleed image. */
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* Campaign name rises and tightens into place. */
+@keyframes titleIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    letter-spacing: 0.2em;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: 0.06em;
+  }
+}
+/* Flavor text surfaces just after the title. */
+@keyframes subtitleIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    color: rgba(196, 228, 242, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    color: rgba(196, 228, 242, 0.65);
+  }
+}
+/* Scrolls the wave SVGs sideways across the water's leading edge. */
+@keyframes waveShift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+/* Light rays flickering through the deep. */
+@keyframes lightRay {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+/* Bubbles drifting up as the screen submerges. */
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-340px) scale(1.1);
+    opacity: 0;
+  }
+}
+/* Loading mark bobbing on the water in the transition's corner. */
+@keyframes floatBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3.5deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(3.5deg);
+  }
+}
+/* Player emerging from the dark once the campaign view mounts. */
+@keyframes playerReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.app--reveal {
+  animation: playerReveal 0.9s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-transition,
+  .campaign-transition * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .app--reveal {
+    animation: none;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -293,6 +399,27 @@ input {
   color: var(--muted);
   font-family: var(--font-data);
   font-size: 10px;
+  cursor: pointer;
+}
+.slider__value:hover {
+  color: var(--text);
+}
+/* Inline editor shown after double-clicking the value. */
+.slider__value--input {
+  width: 32px;
+  padding: 1px 3px;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 196, 212, 0.5);
+  border-radius: 4px;
+  outline: none;
+  cursor: text;
+  -moz-appearance: textfield;
+}
+.slider__value--input::-webkit-outer-spin-button,
+.slider__value--input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 input[type="range"] {
   -webkit-appearance: none;
@@ -333,6 +460,37 @@ input[type="range"]:disabled {
   cursor: not-allowed;
 }
 
+/* Mixer sliders (Figma look): a bright cyan fill up to a glowing knob. The
+ * fill is a gradient split at --pct, set inline by the Slider component.
+ * Selectors are qualified with input[type="range"] so they out-specify the
+ * base range rule (whose [type] attribute already gives it a class's weight). */
+input[type="range"].slider__range {
+  height: 5px;
+  border-radius: 1px;
+  background: linear-gradient(
+    to right,
+    var(--ember-2) 0 var(--pct, 0%),
+    rgba(0, 196, 212, 0.16) var(--pct, 0%) 100%
+  );
+}
+input[type="range"].slider__range::-webkit-slider-thumb {
+  width: 5px;
+  height: 15px;
+  border-radius: 1px;
+  background: #eafdff;
+  box-shadow: 0 0 8px rgba(0, 196, 212, 0.9);
+}
+input[type="range"].slider__range:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 14px rgba(0, 196, 212, 1);
+}
+input[type="range"].slider__range::-moz-range-thumb {
+  width: 5px;
+  height: 15px;
+  border-radius: 1px;
+  background: #eafdff;
+  box-shadow: 0 0 8px rgba(0, 196, 212, 0.9);
+}
+
 /* ---------- App shell (sidebar + content) ---------- */
 .shell {
   flex: 1;
@@ -353,7 +511,7 @@ input[type="range"]:disabled {
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
   padding: 18px 16px;
   border-right: 1px solid var(--line);
   background: var(--bg-2);
@@ -428,6 +586,66 @@ input[type="range"]:disabled {
   font-size: 10px;
   color: rgba(74, 122, 155, 0.5);
   letter-spacing: 1px;
+}
+.sidebar__campaign-block {
+  min-width: 0;
+}
+.sidebar__section {
+  display: block;
+  margin-bottom: 5px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(74, 122, 155, 0.6);
+}
+/* Player / Library navigation */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.sidebar__nav-item:hover {
+  color: var(--text);
+  background: rgba(0, 196, 212, 0.05);
+}
+.sidebar__nav-item.is-active {
+  color: var(--ember-2);
+  background: rgba(0, 196, 212, 0.1);
+  border-color: rgba(0, 196, 212, 0.2);
+}
+/* Crossfade control moved under the mixer */
+.sidebar__crossfade {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.toggle--full {
+  width: 100%;
+  justify-content: center;
+}
+.toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ---------- Layout ---------- */
@@ -1141,6 +1359,16 @@ input[type="text"]:focus {
 .nowplaying .icon-btn:not(.icon-btn--play):hover {
   color: var(--ember-2);
   background: rgba(0, 196, 212, 0.08);
+}
+/* Toggle transport buttons (loop, shuffle): clearly dim when off, bright and
+ * glowing when on. */
+.nowplaying .icon-btn.is-on {
+  color: var(--ember-2);
+  background: rgba(0, 196, 212, 0.14);
+  filter: drop-shadow(0 0 5px rgba(0, 196, 212, 0.65));
+}
+.nowplaying .icon-btn.is-on:hover {
+  background: rgba(0, 196, 212, 0.2);
 }
 .nowplaying .icon-btn--play {
   width: 38px;

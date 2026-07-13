@@ -1,18 +1,26 @@
 import { useStore } from "../store/store";
 import { useT } from "../lib/i18n";
+import type { IconName } from "./Icon";
 import type { RepeatMode } from "../types";
 import { Icon } from "./Icon";
 
+// Cycle: off → repeat current forever → repeat current once → off.
 const NEXT: Record<RepeatMode, RepeatMode> = {
-  off: "all",
-  all: "one",
-  one: "off",
+  off: "one",
+  one: "once",
+  once: "off",
+};
+
+const ICON: Record<RepeatMode, IconName> = {
+  off: "repeat",
+  one: "repeatInfinite",
+  once: "repeatOne",
 };
 
 /**
- * Cycles the active playlist's repeat mode: off → all → one (loop current
- * track) → off. Highlights when looping is active. Disabled when there's no
- * active playlist (nothing to loop).
+ * Cycles the active playlist's per-track loop mode. The playlist itself always
+ * keeps playing (and restarts at the end), so there is no "loop playlist" mode.
+ * Dim when off, glowing cyan when on. Disabled without an active playlist.
  */
 export function LoopButton({ small = false }: { small?: boolean }) {
   const t = useT();
@@ -22,8 +30,11 @@ export function LoopButton({ small = false }: { small?: boolean }) {
   );
   const updatePlaylist = useStore((s) => s.updatePlaylist);
 
-  const mode: RepeatMode = playlist?.repeat ?? "off";
+  // Coerce any legacy value (e.g. the old "all") to a current mode.
+  const raw = playlist?.repeat;
+  const mode: RepeatMode = raw === "one" || raw === "once" ? raw : "off";
   const disabled = !activePlaylistId;
+
   const onClick = () => {
     if (!playlist) return;
     updatePlaylist(playlist.id, { repeat: NEXT[mode] });
@@ -31,9 +42,9 @@ export function LoopButton({ small = false }: { small?: boolean }) {
 
   const label =
     mode === "one"
-      ? t("loop.track")
-      : mode === "all"
-        ? t("loop.playlist")
+      ? t("loop.one")
+      : mode === "once"
+        ? t("loop.once")
         : t("loop.off");
 
   return (
@@ -46,7 +57,7 @@ export function LoopButton({ small = false }: { small?: boolean }) {
       title={label}
       aria-label={label}
     >
-      <Icon name={mode === "one" ? "repeatOne" : "repeat"} />
+      <Icon name={ICON[mode]} />
     </button>
   );
 }
