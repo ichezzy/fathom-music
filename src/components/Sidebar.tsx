@@ -5,7 +5,6 @@ import { useT } from "../lib/i18n";
 import { EditableText, Slider } from "./common";
 import { SettingsModal } from "./SettingsModal";
 import { Icon } from "./Icon";
-import logo from "../assets/logo.png";
 
 /** Left navigation rail: brand, campaign, nav, live mixer, and app actions. */
 export function Sidebar() {
@@ -36,18 +35,14 @@ export function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar__brand">
-        <button
-          className="icon-btn icon-btn--mini"
-          title={t("menu.back")}
-          aria-label={t("menu.back")}
-          onClick={() => beginExitTransition()}
-        >
-          <Icon name="back" size={16} />
-        </button>
-        <img className="sidebar__mark" src={logo} alt="" aria-hidden />
-        <span className="sidebar__app">Fathom</span>
-      </div>
+      <button
+        className="sidebar__back"
+        title={t("sidebar.backToMenu")}
+        onClick={() => beginExitTransition()}
+      >
+        <Icon name="back" size={16} />
+        <span>{t("sidebar.backToMenu")}</span>
+      </button>
 
       <div className="sidebar__campaign-block">
         <span className="sidebar__section">{t("sidebar.campaign")}</span>
@@ -137,13 +132,17 @@ export function Sidebar() {
  */
 function SidebarCrossfade() {
   const t = useT();
-  const activePlaylistId = useStore((s) => s.activePlaylistId);
-  const playlist = useStore((s) =>
-    s.playlists.find((p) => p.id === s.activePlaylistId),
+  // Target the playlist the user is looking at (or the playing/first one), so
+  // the transition mode is editable any time — not only during playback.
+  const playlist = useStore(
+    (s) =>
+      s.playlists.find((p) => p.id === s.viewedPlaylistId) ??
+      s.playlists.find((p) => p.id === s.activePlaylistId) ??
+      s.playlists[0],
   );
   const updatePlaylist = useStore((s) => s.updatePlaylist);
 
-  const disabled = !activePlaylistId || !playlist;
+  const disabled = !playlist;
   const on = Boolean(playlist?.crossfade);
 
   return (

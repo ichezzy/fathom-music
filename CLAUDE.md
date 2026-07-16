@@ -1,180 +1,94 @@
 # CLAUDE.md – Fathom Music
 
-> Projektleitfaden für Claude. Diese Datei wird zu Beginn jeder Session gelesen.
-> Sie ist die verbindliche Quelle für Ziel, Architektur, Konventionen und Arbeitsweise.
-> **Diese Datei bleibt weitgehend unverändert** – der aktuelle Stand und die Pläne
-> werden stattdessen in `ROADMAP.md` gepflegt (nach jedem Update aktualisieren).
+> Kurzleitfaden + Code-Index. Lies gezielt nur die Dateien, die du laut Index
+> brauchst — kein freies Durchsuchen des Repos. Andere .md-Dateien nur bei
+> Bedarf öffnen: `ROADMAP.md` hält Stand, Patch-Notes und Pläne (nach jeder
+> Etappe aktualisieren, sonst nicht lesen).
 
-> ⚠️ **Projektort: `E:\Claude\Fathom Music` (lokales Laufwerk).**
-> NICHT auf Google Drive entwickeln – Drive-Sync sperrt Dateien und bricht
-> npm/Electron-Installationen. Claude in diesem Ordner starten.
+## Arbeitsweise
 
----
+- **95%-Regel: Keine Änderungen, bevor du nicht ≥95 % sicher bist, was gebaut
+  werden soll. Stelle so lange Rückfragen, bis du diese Sicherheit hast.**
+- Deutsch mit dem Nutzer (Anfänger — Entscheidungen kurz begründen); Code und
+  Kommentare Englisch.
+- UI-Texte NUR über i18n (`src/lib/i18n.ts`), immer in allen 5 Sprachen
+  (EN/DE/FR/ES/IT). Nie hart codieren.
+- Lauffähige Etappen; der Nutzer testet mit `start-fathom.bat`, erst dann Release.
+- `npm run typecheck` muss vor jedem Etappenende sauber durchlaufen.
+- Commits klein und thematisch, Imperativ; nur committen/pushen/taggen, wenn
+  der Nutzer es möchte (oder am Etappenende anbieten).
+- Abhängigkeiten sparsam, jede neue Lib kurz begründen. Kein Backend/Server —
+  alles lokal und kostenlos (GitHub Free).
+- Projektort ist `E:\Claude\Fathom Music` (lokal, NICHT Google Drive — Sync
+  bricht npm/Electron).
 
-## 1. Was ist Fathom Music?
+## Was ist die App?
 
-Eine **Windows-Desktop-App** für Spielleiter (DMs) von Tabletop-Rollenspielen:
-Musik, Ambience und Soundeffekte für Sessions steuern – wie eine Streaming-App,
-aber mit eigenen Dateien und YouTube-Quellen, alles mischbar.
+Windows-Desktop-App (Electron) für Spielleiter von Tabletop-Rollenspielen:
+Musik (Playlists, Crossfade, Queue), Ambient-Loops und Soundboard-Effekte
+mischen — lokale Dateien + YouTube. Kampagnen = Profile mit eigener Bibliothek;
+Mixer/Settings global. Repo: https://github.com/ichezzy/fathom-music
 
-Kernfunktionen:
-- **Musik-Sektion:** Playlists mit Tracks (lokale Dateien oder YouTube),
-  Crossfade zwischen Tracks, Shuffle, Repeat, Warteschlange (Play Queue).
-- **Ambient-Sektion:** lang laufende Loop-Betten (Höhle, Regen, Taverne …),
-  mehrere gleichzeitig, je eigener Lautstärkeregler, gruppierbar.
-- **Soundboard:** kurze One-Shot-Effekte auf Pads (immer lokal, latenzarm),
-  Einmal- oder Intervall-Modus (z. B. Wolfsheulen alle 30–60 s), gruppierbar,
-  per Hotkey (Pad 1–9) auslösbar.
-- **Kampagnen:** benannte Profile (z. B. „Curse of Strahd") mit jeweils eigener
-  Bibliothek; Mixer und Einstellungen sind global.
-- **Komfort:** Mini-Player (always-on-top), System-Tray, Fenster-Gedächtnis,
-  Hotkeys (umbelegbar), Audio-Ausgabegerät wählbar, Mehrsprachigkeit,
-  Auto-Update über GitHub Releases.
+## Tech-Stack
 
-Repo: https://github.com/ichezzy/fathom-music
+Electron 33 · React 18 + TypeScript · Vite 5 (Dev-Port 5173) · Zustand ·
+IndexedDB via `idb` (State UND Audio-Blobs) · electron-builder (NSIS) ·
+electron-updater (Auto-Update aus GitHub Releases).
 
-**Namens-Historie:** Die App hieß bis v0.2.x **TavernLoops** (UI-Umbenennung
-mit v0.3.0, vollständiges Rebranding mit v0.4.0: `name: fathom-music`,
-`productName: Fathom Music`). ⚠️ **Zwei Dinge bleiben bewusst beim alten Wert:**
-- `appId: com.ichezzy.tavernloops` – identifiziert die Installation in der
-  Windows-Registry; derselbe Wert sorgt dafür, dass der Installer die alte
-  TavernLoops-Installation ersetzt statt eine zweite App anzulegen. **Nie ändern.**
-- IndexedDB-Name `tavernloops` in `src/lib/db.ts` (Legacy-Web-Storage).
-
-Der `productName`-Wechsel verschob den Datenordner
-(`%APPDATA%\TavernLoops` → `%APPDATA%\Fathom Music`); `migrateLegacyUserData()`
-in `electron/main.cjs` zieht alte Bibliotheken beim ersten Start um –
-diese Funktion nicht entfernen.
-
----
-
-## 2. Rahmenbedingungen (vom Nutzer vorgegeben)
-
-- **Claude entwickelt die App vollständig allein.** Der Nutzer ist Anfänger und folgt mit.
-  → Code gut lesbar halten, Entscheidungen kurz begründen, in lauffähigen Etappen liefern.
-- **Plattform:** Windows-Desktop (Electron). Releases als NSIS-Installer.
-- **Kosten:** Muss **kostenlos** bleiben (privater Gebrauch, GitHub Free reicht).
-- **Sprache mit dem Nutzer:** Deutsch.
-- **Testen vor Release:** Der Nutzer testet lokal (per `start-fathom.bat`),
-  erst danach wird ein GitHub-Release ausgelöst.
-
----
-
-## 3. Technologie-Stack
-
-| Bereich       | Wahl                          | Begründung |
-|---------------|-------------------------------|------------|
-| App-Hülle     | **Electron** (v33)            | Web-Technik als Desktop-App, Auto-Update, Tray, frameless Fenster. |
-| UI            | **React 18 + TypeScript**     | Komponenten-Struktur für die komplexe Player-UI; Typsicherheit. |
-| Build         | **Vite 5**                    | Schneller Dev-Server (Port 5173) + Production-Build nach `dist/`. |
-| State         | **Zustand**                   | Ein zentraler Store (`src/store/store.ts`), einfach und ohne Boilerplate. |
-| Persistenz    | **IndexedDB** via `idb`       | Kampagnen, Playlists, Einstellungen UND hochgeladene Audio-Dateien (Blobs) – alles lokal im Browser-Storage der App. |
-| Audio         | **Web Audio / `<audio>`** + **YouTube IFrame API** | Eigene Engines (siehe Architektur); YouTube als kostenlose Musikquelle. |
-| Updates       | `electron-updater`            | Auto-Update aus GitHub Releases (Check beim Start + alle 6 h). |
-| Packaging     | `electron-builder` (NSIS)     | Windows-Installer; Publishing via GitHub Actions. |
-
-**Bewusst NICHT:** eigenes Backend/Server (Kosten), Datenbank-Dienste – alles lokal.
-
----
-
-## 4. Architektur
-
-### Renderer (React, `src/`)
-- **Drei Audio-Engines** (`src/audio/`), initialisiert in einem versteckten DOM-Host:
-  - `MusicEngine.ts` + `Deck.ts` – Playlist-Wiedergabe mit **zwei Decks** für
-    Crossfade; Quellen: lokale Blobs oder YouTube-IFrame.
-  - `AmbientEngine.ts` – parallele Loop-Kanäle mit eigener Lautstärke.
-  - `SoundboardEngine.ts` – One-Shots und Intervall-Trigger (immer lokal).
-  - `ramp.ts` – sanfte Lautstärke-Rampen (kein Knacksen).
-- **Store** (`src/store/store.ts`, Zustand): kompletter App-State inkl. Aktionen;
-  `hydrate()` lädt aus IndexedDB, danach wird jede Änderung persistiert.
-- **Datenmodell** (`src/types.ts`): `Campaign` (= Profil mit eigener Bibliothek:
-  Tracks, Playlists, Ambient, Soundboard, Gruppen) + globale `MixerState`/`AppSettings`.
-- **DB-Schicht** (`src/lib/db.ts`, `idb`): persistierter State + Audio-Dateien als Blobs.
-- **i18n** (`src/lib/i18n.ts`): Sprachen **EN (Standard), DE, FR, ES, IT**.
-  Neue UI-Strings IMMER über die i18n-Helfer anlegen, nie hart codieren,
-  und in ALLEN fünf Sprachen ergänzen.
-- **Hotkeys** (`src/lib/hotkeys.ts`): globale Tasten (Play/Pause, Next, Prev,
-  Pads 1–9, Loops stoppen), vom Nutzer umbelegbar (`AppSettings.hotkeys`).
-
-### Main-Prozess (Electron, `electron/`)
-- `main.cjs` – Fenster, Tray, Mini-Player-Umschaltung, Auto-Update, IPC.
-- `preload.cjs` – schmale, sichere Brücke (`contextIsolation: true`,
-  `nodeIntegration: false`); Renderer spricht nur über `window.…`-API mit Node.
-- `staticServer.cjs` – ⚠️ **Kernstück:** Die gepackte App wird über einen lokalen
-  HTTP-Server auf **festem Port 47615** ausgeliefert. Grund: IndexedDB ist an den
-  Origin (inkl. Port) gebunden – ein wechselnder Port würde **alle Nutzerdaten
-  löschen**; außerdem braucht der YouTube-Player einen echten HTTP-Origin.
-  **Diesen Port niemals ändern.**
-- `storage.cjs`, `windowState.cjs` – IPC-Storage-Helfer, Fenster-Gedächtnis.
-- Single-Instance-Lock (ein Besitzer von Port + Daten); zweiter Start fokussiert
-  nur das bestehende Fenster.
-- Windows: frameless Fenster, eigene Titelleiste im Renderer (`TitleBar.tsx`,
-  Höhe 34 px – muss mit `.titlebar` im CSS übereinstimmen).
-
-### Projektstruktur
-```
-fathom-music/
-├─ CLAUDE.md             # dieser Leitfaden (stabil)
-├─ ROADMAP.md            # Patch-Notes + Pläne (nach jedem Update pflegen!)
-├─ start-fathom.bat      # Doppelklick-Starter für lokalen Test (Dev-Modus)
-├─ package.json          # Scripts + electron-builder-Konfiguration
-├─ index.html / vite.config.ts / tsconfig*.json
-├─ .github/workflows/release.yml  # Tag vX.Y.Z → Installer-Build + Release
-├─ build/                # Icons (icon.ico/png) für Installer & Tray
-├─ scripts/make_icon.py  # Icon-Generierung
-├─ electron/             # Main-Prozess (CommonJS, .cjs)
-└─ src/
-   ├─ audio/             # Music/Ambient/Soundboard-Engines + Deck
-   ├─ components/        # React-Komponenten (Sections, Player, Dialoge …)
-   ├─ lib/               # db, i18n, hotkeys, desktop-Brücke, Helfer
-   ├─ store/store.ts     # Zustand-Store (zentraler App-State)
-   └─ types.ts           # Datenmodell
-```
-
----
-
-## 5. Konventionen & Arbeitsweise
-
-- **Code-Sprache:** Bezeichner und Code-Kommentare auf Englisch; Kommunikation
-  mit dem Nutzer auf Deutsch. UI-Texte nur über i18n (alle 5 Sprachen pflegen).
-- **Lauffähige Etappen:** Jede Änderung endet in einem testbaren Stand.
-  Der Nutzer testet mit `start-fathom.bat`, bevor released wird.
-- **Nach jeder Etappe:** `ROADMAP.md` aktualisieren (Patch-Notes-Stil: was ist
-  neu/geändert/gefixt, was ist als Nächstes geplant).
-- **Commits:** klein und thematisch, Imperativ. Nur committen/pushen/taggen,
-  wenn der Nutzer es möchte (oder am Etappenende anbieten).
-- **Abhängigkeiten:** sparsam; jede neue Lib kurz begründen.
-- **Sicherheit:** `contextIsolation` bleibt an; keine Secrets im Repo.
-- **Datensicherheit:** Alles Nutzerdaten liegen in IndexedDB unter dem Origin
-  `http://127.0.0.1:47615` – Port und Origin-Logik nicht anfassen (siehe §4).
-- **Typecheck vor Release:** `npm run typecheck` muss sauber durchlaufen.
-
----
-
-## 6. Befehle & Release-Prozess
+## Befehle
 
 ```bash
-npm install            # Abhängigkeiten installieren
-npm run electron:dev   # Dev-Modus: Vite + Electron mit Hot-Reload (= start-fathom.bat)
-npm run typecheck      # TypeScript prüfen (ohne Build)
-npm run build          # Production-Build nach dist/
-npm run dist           # Installer LOKAL bauen (release/, ohne Publish) – für Installationstests
-npm run release        # Build + Installer + auf GitHub veröffentlichen (macht die CI)
+npm run electron:dev   # Dev-Modus (= start-fathom.bat)
+npm run typecheck      # TypeScript prüfen
+npm run dist           # Installer lokal bauen (release/, ohne Publish)
 ```
 
-**Release-Ablauf** (erst nach erfolgreichem lokalen Test):
-1. Version in `package.json` erhöhen (SemVer).
-2. `ROADMAP.md` aktualisieren (Patch-Notes für die neue Version).
-3. Committen, dann Tag pushen: `git tag vX.Y.Z && git push origin main vX.Y.Z`.
-4. GitHub Actions (`release.yml`) baut den NSIS-Installer auf einem
-   Windows-Runner und veröffentlicht ihn samt `latest.yml` (Auto-Update-Feed)
-   als GitHub Release. Installierte Apps updaten sich danach automatisch.
+Release: Version in `package.json` erhöhen → `ROADMAP.md`-Patch-Notes →
+commit → `git tag vX.Y.Z && git push origin main vX.Y.Z` → CI
+(`.github/workflows/release.yml`) baut und veröffentlicht den Installer.
 
-Windows-Komfort: Doppelklick auf `start-fathom.bat` startet den Dev-Modus.
+## ⚠️ Invarianten (nie ändern)
 
----
+- **Port 47615** (`electron/staticServer.cjs`): Die gepackte App läuft über
+  einen lokalen HTTP-Server auf festem Port — IndexedDB hängt am Origin
+  `http://127.0.0.1:47615`. Portwechsel = alle Nutzerdaten weg.
+- **`appId: com.ichezzy.tavernloops`** (`package.json`): Registry-Identität —
+  sorgt dafür, dass Updates die alte Installation ersetzen. (Die App hieß bis
+  v0.3 TavernLoops.)
+- **IndexedDB-Name `tavernloops`** (`src/lib/db.ts`).
+- **`migrateLegacyUserData()`** (`electron/main.cjs`): zieht alte
+  `%APPDATA%\TavernLoops`-Daten um — nicht entfernen.
+- **`contextIsolation: true`** bleibt an; keine Secrets im Repo.
 
-## 7. Aktueller Status
+## Code-Index — wo finde ich was?
 
-→ Steht bewusst NICHT hier. Stand, Patch-Notes und Pläne: siehe **`ROADMAP.md`**.
+| Bereich | Datei | Was liegt dort |
+|---|---|---|
+| Datenmodell | `src/types.ts` | `Campaign`, `Track`, `Playlist`, `MixerState`, `AppSettings` |
+| State | `src/store/store.ts` | Zustand-Store: gesamter App-State + Aktionen; `hydrate()` lädt aus DB, danach wird jede Änderung persistiert |
+| DB-Schicht | `src/lib/db.ts` | IndexedDB (State + Audio-Blobs) |
+| i18n | `src/lib/i18n.ts` | 5 Wörterbücher + `useT()` |
+| Hotkeys | `src/lib/hotkeys.ts` | Aktionen, Default-Bindings, Umbelegung |
+| Musik-Engine | `src/audio/MusicEngine.ts`, `Deck.ts` | 2 Decks für Crossfade; lokale Blobs + YouTube-IFrame |
+| Ambient-Engine | `src/audio/AmbientEngine.ts` | parallele Loop-Kanäle |
+| Soundboard | `src/audio/SoundboardEngine.ts` | One-Shots + Intervall-Trigger |
+| App-Shell | `src/App.tsx` | View-Routing (`menu`/`campaign`/`void`), Engine-Init, Hotkey-Wiring |
+| Hauptmenü | `src/components/MainMenu.tsx` | Kampagnen-Grid, Neu/Einstellungen-Modals; d20-Anker `menu-logo` |
+| Sidebar | `src/components/Sidebar.tsx` | Mixer, Nav, Zurück-Button (startet Dive Out) |
+| Transport | `src/components/NowPlayingBar.tsx` | Play-Orb (d20, Anker `play-button`), Seek, Queue |
+| Dive-Transition | `src/components/DiveTransition.tsx` | Canvas-Ozean + d20-Flug zwischen Menü/Player (5 s / 4,5 s), Sound, Anker-Messung |
+| Einstellungen | `src/components/SettingsModal.tsx` | Tabs: general/audio/hotkeys/backup/about |
+| Mini-Player | `src/components/MiniPlayer.tsx` | Always-on-top-Kompaktansicht |
+| Styles | `src/index.css` | globale Styles, Keyframes, Titlebar-Höhe 34px (muss zu `TitleBar.tsx` passen) |
+| Main-Prozess | `electron/main.cjs` | Fenster, Tray, Mini-Player, Auto-Update, Migration, Single-Instance |
+| Static Server | `electron/staticServer.cjs` | fester Port 47615 (s. Invarianten) |
+| IPC-Brücke | `electron/preload.cjs` | schmale `window.…`-API |
+| Assets | `src/assets/` | `d20.png` (Mark), `logo.png` (Karten-Backdrop), `dive_in/out.mp3` |
+| App-Icon | `build/icon-1024.png` → `icon.ico`/`icon.png` | 256er PNG-in-ICO; aus der 1024er Quelle generieren |
+
+## Design-Sprache (Kurzfassung)
+
+Tiefsee-Thema: BG `#030d18`, Akzent-Cyan `#00c4d4` (Alphas als
+`rgba(0,196,212,…)`), Hairlines `rgba(0,196,212,0.12)`. Fonts über CSS-Vars
+(`--font-display/-data/-body`). Der d20 ist das Markenzeichen (Menü-Header,
+Sidebar, Play-Button, Transition).

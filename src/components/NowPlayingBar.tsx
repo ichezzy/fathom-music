@@ -4,6 +4,7 @@ import { useT } from "../lib/i18n";
 import { LoopButton } from "./LoopButton";
 import { ShuffleButton } from "./ShuffleButton";
 import { Icon } from "./Icon";
+import d20 from "../assets/d20.png";
 
 export function NowPlayingBar() {
   const t = useT();
@@ -56,13 +57,22 @@ export function NowPlayingBar() {
           >
             <Icon name="prev" />
           </button>
+          {/* Play "orb": the Fathom d20 is the play/pause control — and the
+              landing/launch pad for the dive-transition flyer. */}
           <button
-            className="icon-btn icon-btn--play"
+            className={`play-orb${status.playing ? " is-playing" : ""}`}
             onClick={togglePlay}
             disabled={!hasTrack}
+            title={status.playing ? "Pause" : "Play"}
             aria-label={status.playing ? "Pause" : "Play"}
           >
-            <Icon name={status.playing ? "pause" : "play"} size={18} />
+            <img
+              className="play-orb__d20"
+              data-d20-anchor="play-button"
+              src={d20}
+              alt=""
+              aria-hidden
+            />
           </button>
           <button
             className="icon-btn"

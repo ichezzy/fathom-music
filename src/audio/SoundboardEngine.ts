@@ -19,6 +19,9 @@ export class SoundboardEngine {
   /** Active interval loops, keyed by effect id. */
   private loops = new Map<string, number>();
 
+  /** Currently sounding one-shots per effect id (for retrigger suppression). */
+  private activeShots = new Map<string, number>();
+
   constructor(private onLoopingChange: (ids: string[]) => void = () => {}) {}
 
   private context(): AudioContext {
@@ -79,22 +82,56 @@ export class SoundboardEngine {
     return promise;
   }
 
-  async play(fileId: string, volume = 1): Promise<void> {
-    const ctx = this.context();
-    if (ctx.state === "suspended") await ctx.resume();
-    const buffer = await this.getBuffer(fileId);
-    if (!buffer || !this.master) return;
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    const gain = ctx.createGain();
-    gain.gain.value = Math.max(0, Math.min(1, volume));
-    source.connect(gain).connect(this.master);
-    source.start();
-    source.onended = () => {
-      source.disconnect();
-      gain.disconnect();
+  /**
+   * Fire a one-shot. When `exclusive` is set (layering disabled in settings),
+   * the trigger is ignored while a previous shot of the same effect is still
+   * sounding. `effectId` keys that tracking; without it shots are untracked.
+   */
+  async play(
+    fileId: string,
+    volume = 1,
+    effectId?: string,
+    exclusive = false,
+  ): Promise<void> {
+    if (effectId && exclusive && (this.activeShots.get(effectId) ?? 0) > 0) {
+      return;
+    }
+    // Reserve the slot before the async decode so a rapid double-tap can't
+    // slip through while the first press is still loading the buffer.
+    if (effectId) {
+      this.activeShots.set(effectId, (this.activeShots.get(effectId) ?? 0) + 1);
+    }
+    const release = () => {
+      if (!effectId) return;
+      const n = (this.activeShots.get(effectId) ?? 1) - 1;
+      if (n <= 0) this.activeShots.delete(effectId);
+      else this.activeShots.set(effectId, n);
     };
+
+    try {
+      const ctx = this.context();
+      if (ctx.state === "suspended") await ctx.resume();
+      const buffer = await this.getBuffer(fileId);
+      if (!buffer || !this.master) {
+        release();
+        return;
+      }
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const gain = ctx.createGain();
+      gain.gain.value = Math.max(0, Math.min(1, volume));
+      source.connect(gain).connect(this.master);
+      source.start();
+      source.onended = () => {
+        source.disconnect();
+        gain.disconnect();
+        release();
+      };
+    } catch (e) {
+      release();
+      throw e;
+    }
   }
 
   loopingIds(): string[] {
@@ -116,12 +153,13 @@ export class SoundboardEngine {
     volume: number,
     minSeconds: number,
     maxSeconds: number,
+    exclusive = false,
   ): void {
     this.stopLoop(effectId);
     const lo = Math.max(0.1, Math.min(minSeconds, maxSeconds));
     const hi = Math.max(lo, Math.max(minSeconds, maxSeconds));
     const tick = () => {
-      void this.play(fileId, volume);
+      void this.play(fileId, volume, effectId, exclusive);
       const delay = (lo + Math.random() * (hi - lo)) * 1000;
       this.loops.set(effectId, window.setTimeout(tick, delay));
       this.onLoopingChange(this.loopingIds());

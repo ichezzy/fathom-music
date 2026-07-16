@@ -65,111 +65,9 @@
   }
 }
 
-/* ---------- Campaign "dive" transition (menu → campaign) ---------- */
-/* Overlay eases up from a slightly shrunk card into a full-bleed image. */
-@keyframes overlayIn {
-  from {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-/* Campaign name rises and tightens into place. */
-@keyframes titleIn {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-    letter-spacing: 0.2em;
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    letter-spacing: 0.06em;
-  }
-}
-/* Flavor text surfaces just after the title. */
-@keyframes subtitleIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-    color: rgba(196, 228, 242, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    color: rgba(196, 228, 242, 0.65);
-  }
-}
-/* Scrolls the wave SVGs sideways across the water's leading edge. */
-@keyframes waveShift {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-/* Light rays flickering through the deep. */
-@keyframes lightRay {
-  0%,
-  100% {
-    opacity: 0.15;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-/* Bubbles drifting up as the screen submerges. */
-@keyframes bubbleRise {
-  0% {
-    transform: translateY(0) scale(0.8);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-340px) scale(1.1);
-    opacity: 0;
-  }
-}
-/* Loading mark bobbing on the water in the transition's corner. */
-@keyframes floatBob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-3.5deg);
-  }
-  50% {
-    transform: translateY(-9px) rotate(3.5deg);
-  }
-}
-/* Player emerging from the dark once the campaign view mounts. */
-@keyframes playerReveal {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.app--reveal {
-  animation: playerReveal 0.9s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .campaign-transition,
-  .campaign-transition * {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
-  .app--reveal {
-    animation: none;
-  }
-}
+/* The canvas-based dive transition (DiveTransition.tsx) drives all of its
+   animation via requestAnimationFrame and handles prefers-reduced-motion in
+   JS, so it needs no keyframes here. */
 
 * {
   box-sizing: border-box;
@@ -517,29 +415,27 @@ input[type="range"].slider__range::-moz-range-thumb {
   background: var(--bg-2);
   overflow-y: auto;
 }
-.sidebar__brand {
+/* Back-to-menu row at the top of the sidebar (arrow + label, no brand mark). */
+.sidebar__back {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-.sidebar__mark {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 6px rgba(0, 196, 212, 0.35));
-}
-.sidebar__brand-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.sidebar__app {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 2.4px;
+  gap: 9px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.sidebar__back:hover {
   color: var(--ember-2);
+  background: rgba(0, 196, 212, 0.08);
 }
 .sidebar__campaign {
   font-size: 12px;
@@ -1180,6 +1076,13 @@ input[type="text"]:focus {
   outline: none;
   border-color: rgba(0, 196, 212, 0.5);
 }
+/* Explicit placeholder color — without it Chromium falls back to a UA default
+   that reads as a warm gray against the abyss palette. */
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
 .add-track__error {
   color: var(--ember-2);
   margin: 0;
@@ -1370,10 +1273,43 @@ input[type="text"]:focus {
 .nowplaying .icon-btn.is-on:hover {
   background: rgba(0, 196, 212, 0.2);
 }
-.nowplaying .icon-btn--play {
-  width: 38px;
-  height: 38px;
-  font-size: 16px;
+/* Play "orb": circular button holding the Fathom d20 as the play/pause mark
+   (specs from the dive-transition design handoff). */
+.play-orb {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  border: 1px solid rgba(0, 196, 212, 0.22);
+  background: rgba(0, 196, 212, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px rgba(0, 196, 212, 0.18);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.play-orb.is-playing {
+  border-color: rgba(0, 196, 212, 0.45);
+  box-shadow: 0 0 18px rgba(0, 196, 212, 0.45);
+  animation: depthPulse 2s ease-in-out infinite;
+}
+.play-orb:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.play-orb__d20 {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  opacity: 0.78;
+  transition: opacity 0.2s ease;
+  /* The die's visible pixels sit ~32/714 below the image center (asymmetric
+     baked-in glow), so nudge it up to look centered in the circle. */
+  transform: translateY(-2px);
+}
+.play-orb.is-playing .play-orb__d20 {
+  opacity: 1;
 }
 .nowplaying__meta {
   display: flex;
@@ -2067,13 +2003,18 @@ input[type="text"]:focus {
   align-items: center;
   gap: 8px;
 }
-.settings__output select {
+.settings__output select,
+.settings__language {
   flex: 1;
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 6px;
   color: inherit;
   padding: 6px 8px;
+}
+.settings__language {
+  width: 100%;
+  max-width: 260px;
 }
 
 /* ---------- Sound groups ---------- */

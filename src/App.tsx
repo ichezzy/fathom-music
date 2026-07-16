@@ -13,7 +13,7 @@ import { MiniPlayer } from "./components/MiniPlayer";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { TitleBar } from "./components/TitleBar";
 import { QueuePanel } from "./components/QueuePanel";
-import { CampaignTransition } from "./components/CampaignTransition";
+import { DiveTransition } from "./components/DiveTransition";
 import { desktop } from "./lib/desktop";
 
 export function App() {
@@ -29,9 +29,6 @@ export function App() {
   const soundboardMin = useStore((s) => s.soundboardMinimized);
   const setAmbientMin = useStore((s) => s.setAmbientMinimized);
   const setSoundboardMin = useStore((s) => s.setSoundboardMinimized);
-  // Brief fade-in of the player after the cinematic campaign transition.
-  const playerRevealing = useStore((s) => s.playerRevealing);
-  const clearPlayerRevealing = useStore((s) => s.clearPlayerRevealing);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,13 +88,6 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Clear the reveal flag once its animation has run.
-  useEffect(() => {
-    if (!playerRevealing) return;
-    const timer = setTimeout(clearPlayerRevealing, 950);
-    return () => clearTimeout(timer);
-  }, [playerRevealing, clearPlayerRevealing]);
-
   // The OS caption-button overlay is only active on Windows; the custom title
   // bar strip goes with it. Never in the mini player (it has no room for it).
   const showTitleBar = desktop?.platform === "win32" && !mini;
@@ -106,7 +96,7 @@ export function App() {
     <div
       className={`app${showTitleBar ? " app--titlebar" : ""}${
         mini ? " app--mini" : ""
-      }${playerRevealing ? " app--reveal" : ""}`}
+      }`}
     >
       {showTitleBar && <TitleBar />}
       <UpdateBanner />
@@ -117,7 +107,7 @@ export function App() {
         <MiniPlayer />
       ) : view === "menu" ? (
         <MainMenu />
-      ) : (
+      ) : view === "void" ? null : ( // between views, under the dive canvas
         <>
           <div className="shell">
             <Sidebar />
@@ -149,7 +139,7 @@ export function App() {
       )}
 
       <ConfirmDialog />
-      <CampaignTransition />
+      <DiveTransition />
 
       {/* Hidden host for <audio> + YouTube iframes */}
       <div

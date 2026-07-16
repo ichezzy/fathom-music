@@ -96,6 +96,12 @@ export interface AppSettings {
   confirmBeforeDelete: boolean;
   /** Show a tray icon and hide the window on close instead of quitting. */
   minimizeToTray: boolean;
+  /** Skip the cinematic dive/surface animation when entering/leaving a
+   * campaign and switch instantly instead. */
+  disableTransitionAnimation: boolean;
+  /** Allow the same soundboard effect to play multiple times at once. When
+   * off (default), a pad is ignored while its effect is still playing. */
+  allowEffectLayering: boolean;
 }
 
 export interface MixerState {
