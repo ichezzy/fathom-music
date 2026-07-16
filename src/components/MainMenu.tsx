@@ -10,6 +10,7 @@ import type { Campaign } from "../types";
 import { EditableText, Modal } from "./common";
 import { SettingsModal } from "./SettingsModal";
 import logo from "../assets/logo.png";
+import d20 from "../assets/d20.png";
 
 const MAX_CAMPAIGNS = 4;
 
@@ -55,7 +56,14 @@ export function MainMenu() {
     <div className="menu">
       <div className="menu__topbar">
         <div className="menu__brand">
-          <img className="menu__mark" src={logo} alt="" aria-hidden />
+          {/* data-d20-anchor: landing/launch pad for the dive-transition d20 */}
+          <img
+            className="menu__mark"
+            data-d20-anchor="menu-logo"
+            src={d20}
+            alt=""
+            aria-hidden
+          />
           <h1>Fathom</h1>
           <p>{t("app.subtitle")}</p>
         </div>
@@ -414,13 +422,12 @@ function CampaignSettingsModal({
 function NewCampaignModal({ onClose }: { onClose: () => void }) {
   const t = useT();
   const createCampaign = useStore((s) => s.createCampaign);
-  const openCampaign = useStore((s) => s.openCampaign);
 
   const [name, setName] = useState("");
 
+  // Creating a campaign stays in the menu — the user dives in from its card.
   const onCreate = () => {
-    const id = createCampaign(name);
-    if (id) openCampaign(id);
+    createCampaign(name);
     onClose();
   };
 

@@ -49,6 +49,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   audioOutputDeviceId: "",
   confirmBeforeDelete: true,
   minimizeToTray: false,
+  disableTransitionAnimation: false,
+  allowEffectLayering: false,
 };
 
 const DEFAULT_PLAYBACK: EffectPlayback = { mode: "once" };
@@ -166,6 +168,10 @@ interface StoreState {
   soundboard_engine: SoundboardEngine | null;
   status: MusicStatus;
   activePlaylistId: string | null;
+  /** Playlist currently open in the music view (not necessarily playing) —
+   * shared so the sidebar's crossfade toggle can target it any time. */
+  viewedPlaylistId: string | null;
+  setViewedPlaylist: (id: string | null) => void;
   ambientActiveIds: string[];
   soundboardLoopingIds: string[];
   /** Pending in-app confirmation (see src/lib/confirm.ts). */
@@ -176,9 +182,11 @@ interface StoreState {
   initEngines: (host: HTMLElement) => void;
 
   // Navigation
-  view: "menu" | "campaign";
+  // "void" is transition-only: neither view is mounted while the dive canvas
+  // is fully opaque between menu and player.
+  view: "menu" | "campaign" | "void";
   miniPlayer: boolean;
-  setView: (view: "menu" | "campaign") => void;
+  setView: (view: "menu" | "campaign" | "void") => void;
   openCampaign: (id: string) => void;
   setMiniPlayer: (on: boolean) => void;
   // Cinematic transition between menu and campaign. "dive" plays over the menu
@@ -187,13 +195,12 @@ interface StoreState {
   // is the campaign whose artwork the overlay shows.
   transitionMode: "dive" | "surface" | null;
   transitionCampaignId: string | null;
-  playerRevealing: boolean;
   beginCampaignTransition: (id: string) => void;
+  enterCampaignBehind: () => void;
   endCampaignTransition: () => void;
   beginExitTransition: () => void;
   enterMenuBehind: () => void;
   endExitTransition: () => void;
-  clearPlayerRevealing: () => void;
 
   // Campaigns
   createCampaign: (name: string, icon?: string, color?: string) => string | null;
@@ -401,6 +408,7 @@ export const useStore = create<StoreState>((set, get) => ({
   soundboard_engine: null,
   status: blankStatus,
   activePlaylistId: null,
+  viewedPlaylistId: null,
   ambientActiveIds: [],
   soundboardLoopingIds: [],
   confirmRequest: null,
@@ -408,41 +416,58 @@ export const useStore = create<StoreState>((set, get) => ({
   miniPlayer: false,
   transitionMode: null,
   transitionCampaignId: null,
-  playerRevealing: false,
   queueOpen: false,
   ambientMinimized: false,
   soundboardMinimized: false,
 
   setView: (view) => set({ view }),
+  setViewedPlaylist: (id) => set({ viewedPlaylistId: id }),
   openCampaign: (id) => {
     get().setActiveCampaign(id);
     set({ view: "campaign" });
   },
-  beginCampaignTransition: (id) =>
-    set({ transitionCampaignId: id, transitionMode: "dive" }),
-  endCampaignTransition: () => {
+  beginCampaignTransition: (id) => {
+    if (get().transitionMode) return; // one dive at a time
+    // Animations off: jump straight into the campaign, no overlay.
+    if (get().settings.disableTransitionAnimation) {
+      get().setActiveCampaign(id);
+      set({ view: "campaign" });
+      return;
+    }
+    set({ transitionCampaignId: id, transitionMode: "dive" });
+  },
+  // Mount the campaign player under the still-opaque dive canvas so its play
+  // anchor can be measured before the reveal.
+  enterCampaignBehind: () => {
     const id = get().transitionCampaignId;
     if (id) get().setActiveCampaign(id);
-    set({
-      view: "campaign",
-      transitionCampaignId: null,
-      transitionMode: null,
-      playerRevealing: true,
-    });
+    set({ view: "campaign" });
   },
-  // Leaving a campaign: the view stays on the player while the overlay fades
-  // in over it, then rises back up to the menu.
-  beginExitTransition: () =>
+  endCampaignTransition: () => {
+    // The view was already switched by enterCampaignBehind; just tear down.
+    const id = get().transitionCampaignId;
+    if (id) get().setActiveCampaign(id);
+    set({ view: "campaign", transitionCampaignId: null, transitionMode: null });
+  },
+  // Leaving a campaign: the player stays mounted while the dive canvas fades
+  // in over it, then the d20 surfaces back up to the menu.
+  beginExitTransition: () => {
+    if (get().transitionMode) return; // one dive at a time
+    // Animations off: jump straight back to the menu, no overlay.
+    if (get().settings.disableTransitionAnimation) {
+      set({ view: "menu" });
+      return;
+    }
     set({
       transitionCampaignId: get().activeCampaignId,
       transitionMode: "surface",
-    }),
-  // Swap the player out for the menu while the overlay is fully opaque, so the
-  // switch is hidden and the menu is already in place when the overlay clears.
+    });
+  },
+  // Mount the menu under the still-opaque dive canvas so its logo anchor can
+  // be measured before the reveal.
   enterMenuBehind: () => set({ view: "menu" }),
   endExitTransition: () =>
     set({ transitionCampaignId: null, transitionMode: null }),
-  clearPlayerRevealing: () => set({ playerRevealing: false }),
   setMiniPlayer: (on) => {
     set({ miniPlayer: on });
     void desktopBridge?.setMiniPlayer(on);
@@ -542,6 +567,7 @@ export const useStore = create<StoreState>((set, get) => ({
         ambientGroups: fallback?.ambientGroups ?? [],
         soundboardGroups: fallback?.soundboardGroups ?? [],
         activePlaylistId: null,
+        viewedPlaylistId: null,
         status: blankStatus,
         ambientActiveIds: [],
         soundboardLoopingIds: [],
@@ -573,6 +599,7 @@ export const useStore = create<StoreState>((set, get) => ({
       ambientGroups: target.ambientGroups,
       soundboardGroups: target.soundboardGroups,
       activePlaylistId: null,
+      viewedPlaylistId: null,
       status: blankStatus,
       ambientActiveIds: [],
       soundboardLoopingIds: [],
@@ -694,6 +721,7 @@ export const useStore = create<StoreState>((set, get) => ({
     set((s) => ({
       playlists: s.playlists.filter((pl) => pl.id !== id),
       activePlaylistId: s.activePlaylistId === id ? null : s.activePlaylistId,
+      viewedPlaylistId: s.viewedPlaylistId === id ? null : s.viewedPlaylistId,
     }));
     schedulePersist(get);
   },
@@ -1052,11 +1080,17 @@ export const useStore = create<StoreState>((set, get) => ({
           effect.volume,
           effect.playback.minSeconds,
           effect.playback.maxSeconds,
+          !get().settings.allowEffectLayering,
         );
       }
       return;
     }
-    void engine.play(effect.fileId, effect.volume);
+    void engine.play(
+      effect.fileId,
+      effect.volume,
+      id,
+      !get().settings.allowEffectLayering,
+    );
   },
 
   setMixer: (patch) => {

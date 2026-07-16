@@ -150,10 +150,20 @@ function setupAutoUpdates() {
 
 // ---- Mini player ----
 
+// Whether the window was maximized/fullscreen when the mini player opened,
+// so exitMini can restore that state.
+let miniWasMaximized = false;
+let miniWasFullScreen = false;
+
 function enterMini() {
   if (!mainWindow || miniActive) return;
   miniActive = true;
   stateMgr?.suspend();
+  // setSize is a no-op while maximized or fullscreen — leave those first.
+  miniWasFullScreen = mainWindow.isFullScreen();
+  miniWasMaximized = mainWindow.isMaximized();
+  if (miniWasFullScreen) mainWindow.setFullScreen(false);
+  if (miniWasMaximized) mainWindow.unmaximize();
   mainWindow.setMinimumSize(360, 110);
   mainWindow.setSize(MINI.width, MINI.height);
   mainWindow.setAlwaysOnTop(true);
@@ -163,6 +173,7 @@ function exitMini() {
   if (!mainWindow || !miniActive) return;
   miniActive = false;
   mainWindow.setAlwaysOnTop(false);
+  mainWindow.setMinimumSize(windowState.MIN.width, windowState.MIN.height);
   const last = stateMgr?.lastBounds();
   if (last) {
     mainWindow.setSize(last.width, last.height);
@@ -170,7 +181,8 @@ function exitMini() {
       mainWindow.setPosition(last.x, last.y);
     }
   }
-  mainWindow.setMinimumSize(windowState.MIN.width, windowState.MIN.height);
+  if (miniWasMaximized) mainWindow.maximize();
+  if (miniWasFullScreen) mainWindow.setFullScreen(true);
   stateMgr?.resume();
 }
 

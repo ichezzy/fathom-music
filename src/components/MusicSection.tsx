@@ -13,7 +13,10 @@ export function MusicSection() {
   const movePlaylist = useStore((s) => s.movePlaylist);
   const activePlaylistId = useStore((s) => s.activePlaylistId);
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Selection lives in the store so the sidebar's crossfade toggle can target
+  // the viewed playlist even while nothing is playing.
+  const selectedId = useStore((s) => s.viewedPlaylistId);
+  const setSelectedId = useStore((s) => s.setViewedPlaylist);
   const [editing, setEditing] = useState(false);
   const effectiveId =
     (selectedId && playlists.some((p) => p.id === selectedId) && selectedId) ||

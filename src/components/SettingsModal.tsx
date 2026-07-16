@@ -60,6 +60,7 @@ function GeneralTab() {
   const autoOpen = useStore((s) => s.settings.autoOpenLastCampaign);
   const confirmDel = useStore((s) => s.settings.confirmBeforeDelete);
   const minToTray = useStore((s) => s.settings.minimizeToTray);
+  const noAnim = useStore((s) => s.settings.disableTransitionAnimation);
   const setLanguage = useStore((s) => s.setLanguage);
   const setSetting = useStore((s) => s.setSetting);
 
@@ -67,17 +68,19 @@ function GeneralTab() {
     <>
       <div className="field">
         <span>{t("settings.language")}</span>
-        <div className="seg seg--wrap">
+        <select
+          className="settings__language"
+          value={language}
+          onChange={(e) =>
+            setLanguage(e.target.value as (typeof LANGUAGES)[number]["code"])
+          }
+        >
           {LANGUAGES.map((l) => (
-            <button
-              key={l.code}
-              className={`seg__btn${language === l.code ? " is-on" : ""}`}
-              onClick={() => setLanguage(l.code)}
-            >
+            <option key={l.code} value={l.code}>
               {l.label}
-            </button>
+            </option>
           ))}
-        </div>
+        </select>
       </div>
 
       <div className="field">
@@ -104,6 +107,18 @@ function GeneralTab() {
         <p className="field__hint">{t("settings.confirmDeleteHint")}</p>
       </div>
 
+      <div className="field">
+        <span>{t("settings.animations")}</span>
+        <button
+          className={`toggle${noAnim ? " is-on" : ""}`}
+          onClick={() => setSetting("disableTransitionAnimation", !noAnim)}
+        >
+          <span className="toggle__dot" />
+          {t("settings.disableTransition")}
+        </button>
+        <p className="field__hint">{t("settings.disableTransitionHint")}</p>
+      </div>
+
       {desktop && (
         <div className="field">
           <span>{t("settings.window")}</span>
@@ -125,6 +140,8 @@ function AudioTab() {
   const t = useT();
   const audioOut = useStore((s) => s.settings.audioOutputDeviceId);
   const setAudioOutputDevice = useStore((s) => s.setAudioOutputDevice);
+  const layering = useStore((s) => s.settings.allowEffectLayering);
+  const setSetting = useStore((s) => s.setSetting);
   const [outputs, setOutputs] = useState<MediaDeviceInfo[]>([]);
 
   // Enumerate output devices. Labels stay blank until we hold a media
@@ -155,30 +172,44 @@ function AudioTab() {
   }, []);
 
   return (
-    <div className="field">
-      <span>{t("settings.output")}</span>
-      <div className="settings__output">
-        <select
-          value={audioOut}
-          onChange={(e) => void setAudioOutputDevice(e.target.value)}
-        >
-          <option value="">{t("settings.output.default")}</option>
-          {outputs.map((d) => (
-            <option key={d.deviceId} value={d.deviceId}>
-              {d.label || d.deviceId.slice(0, 12)}
-            </option>
-          ))}
-        </select>
-        <button
-          className="btn btn--ghost btn--small"
-          onClick={() => void refreshDevices()}
-          title={t("settings.output.refresh")}
-        >
-          ↻
-        </button>
+    <>
+      <div className="field">
+        <span>{t("settings.output")}</span>
+        <div className="settings__output">
+          <select
+            value={audioOut}
+            onChange={(e) => void setAudioOutputDevice(e.target.value)}
+          >
+            <option value="">{t("settings.output.default")}</option>
+            {outputs.map((d) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || d.deviceId.slice(0, 12)}
+              </option>
+            ))}
+          </select>
+          <button
+            className="btn btn--ghost btn--small"
+            onClick={() => void refreshDevices()}
+            title={t("settings.output.refresh")}
+          >
+            ↻
+          </button>
+        </div>
+        <p className="field__hint">{t("settings.output.hint")}</p>
       </div>
-      <p className="field__hint">{t("settings.output.hint")}</p>
-    </div>
+
+      <div className="field">
+        <span>{t("sfx.title")}</span>
+        <button
+          className={`toggle${layering ? " is-on" : ""}`}
+          onClick={() => setSetting("allowEffectLayering", !layering)}
+        >
+          <span className="toggle__dot" />
+          {t("settings.effectLayering")}
+        </button>
+        <p className="field__hint">{t("settings.effectLayeringHint")}</p>
+      </div>
+    </>
   );
 }
 
