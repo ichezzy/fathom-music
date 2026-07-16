@@ -1,7 +1,7 @@
 {
   "name": "fathom-music",
   "private": true,
-  "version": "0.4.3",
+  "version": "0.5.0",
   "type": "module",
   "description": "Music, ambience and sound-effects controller for tabletop RPG game masters.",
   "author": "ichezzy",

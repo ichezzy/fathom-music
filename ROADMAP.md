@@ -5,13 +5,13 @@
 > Pläne unter To-Do/Planning nachziehen. Der Gesamtplan steht in `CLAUDE.md`.
 >
 > Kategorien: **Done (Patch-Notes) · In Arbeit · To-Do · Planning · Bugs/Known Issues**.
-> Letzte Aktualisierung: 2026-07-13 · Aktuelle Version: **v0.4.3**
+> Letzte Aktualisierung: 2026-07-16 · Aktuelle Version: **v0.5.0**
 
 ---
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
 
-### v0.4.3 – 2026-07-12
+### v0.5.0 – 2026-07-16
 - **Dive-Transitions nach Design-Handoff neu gebaut (Canvas + d20):** Der
   Übergang Menü ↔ Kampagne ist jetzt die Handoff-Inszenierung aus
   `Redesign.zip` (1:1 portiert aus dem Prototyp): **Dive In (~5 s)** — der
@@ -64,6 +64,8 @@
   wird gar nicht erst gemountet). Neuer Setting-Key `disableTransitionAnimation`
   (Default aus), i18n `settings.animations` · `settings.disableTransition` ·
   `settings.disableTransitionHint` in allen 5 Sprachen.
+
+### v0.4.3 – 2026-07-12
 - **Loop/Shuffle-Icons zeigen jetzt klar an/aus:** Symbol **matt-grau wenn aus**,
   **hell-cyan leuchtend (Glow) wenn an**. Vorher leuchtete Loop immer und Shuffle
   blieb immer grau — die neue Regel `.nowplaying .icon-btn.is-on` gilt für beide.
