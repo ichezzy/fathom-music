@@ -5,13 +5,65 @@
 > Pläne unter To-Do/Planning nachziehen. Der Gesamtplan steht in `CLAUDE.md`.
 >
 > Kategorien: **Done (Patch-Notes) · In Arbeit · To-Do · Planning · Bugs/Known Issues**.
-> Letzte Aktualisierung: 2026-07-12 · Aktuelle Version: **v0.4.3**
+> Letzte Aktualisierung: 2026-07-13 · Aktuelle Version: **v0.4.3**
 
 ---
 
 ## ✅ Done (Patch-Notes, neueste zuerst)
 
 ### v0.4.3 – 2026-07-12
+- **Dive-Transitions nach Design-Handoff neu gebaut (Canvas + d20):** Der
+  Übergang Menü ↔ Kampagne ist jetzt die Handoff-Inszenierung aus
+  `Redesign.zip` (1:1 portiert aus dem Prototyp): **Dive In (~5 s)** — der
+  Fathom-d20 springt aus dem Menü-Header ins Bildzentrum (Treffer bei ~0,49 s,
+  synchron zum Splash im Sound), sinkt durch eine Canvas-Ozeanszene, die zur
+  Tiefsee abdunkelt (Lichtschächte, Marine-Schnee, Blasen, Biolumineszenz-
+  Punkte, Vignette), und **landet als Play-Button** in der Transportleiste.
+  **Dive Out (~4,5 s)** — der d20 steigt vom Play-Button auf, taucht durch
+  heller werdendes Wasser mit Lichtpulsen auf, Surface-Flash, und landet im
+  Menü-Header. Anker werden live per `getBoundingClientRect` gemessen
+  (`data-d20-anchor`), Views wechseln unter dem deckenden Canvas
+  (neue Store-View `void`). Sounds `dive_in/out.mp3` starten bei t=0,
+  Lautstärke folgt dem Master. Neu: `src/components/DiveTransition.tsx`
+  (ersetzt `CampaignTransition.tsx`); rAF-Loop mit Timer-Fallback, falls das
+  Fenster minimiert ist; „prefers-reduced-motion" = Sofort-Wechsel mit Sound.
+- **Branding: der d20 ist jetzt das Markenzeichen.** Neues `src/assets/d20.png`
+  (aus dem neuen App-Icon extrahiert, Glow eingebacken) ersetzt das Logo im
+  Hauptmenü-Header (30 px) und in der Sidebar (26 px); `logo.png` bleibt
+  Karten-Backdrop. Der Play/Pause-Button der Transportleiste ist jetzt ein
+  **52-px-Kreis mit 40-px-d20** („Play-Orb": Cyan-Glow, beim Abspielen heller +
+  `depthPulse`). Neues **App-Icon** (`build/icon-1024.png` → `icon.ico`/
+  `icon.png` als 256er PNG-ICO regeneriert; `scripts/make_icon.py` ist damit
+  überholt).
+- **Feinschliff-Runde nach dem Redesign:** Neues Wellen-Logo überall, wo die
+  alte Marke war (`src/assets/logo.png` ersetzt → Titelleiste, Kampagnenkarten-
+  Backdrop, Bildvorschau). Placeholder-Texte („Paste YouTube link…" u. a.)
+  jetzt explizit in `--muted` statt Browser-Grau; Button heißt **„+ Add Song"**
+  (alle 5 Sprachen). Sidebar zeigt statt Logo+FATHOM einen klaren
+  **„Back to Main Menu"**-Button. Play-Orb-d20 um 2 px nach oben zentriert
+  (asymmetrischer Glow im Asset). **Soundboard:** Effekte layern sich
+  standardmäßig nicht mehr — ein Pad wird ignoriert, solange sein Effekt läuft
+  (`SoundboardEngine.play` mit Exklusiv-Zählung, greift auch bei
+  Intervall-Loops); neue Einstellung **„Effekte überlagern"** unter
+  *Einstellungen › Audio* (`allowEffectLayering`, Default aus). **Sprachen als
+  Dropdown** statt Button-Reihe. **Neue Kampagne bleibt im Hauptmenü** statt
+  sofort zu starten. **Transition Mode (Crossfade) immer änderbar:** Der
+  Sidebar-Toggle zielt auf die im Music-Panel ausgewählte Playlist
+  (neuer Store-State `viewedPlaylistId`), nicht mehr nur auf die spielende.
+  **Mini-Player-Fix:** `setSize` griff nicht bei maximiertem/Vollbild-Fenster —
+  `enterMini` unmaximized jetzt vorher und `exitMini` stellt den Zustand
+  wieder her. **Dive-Timing:** d20 braucht beim Eintauchen 0,1 s länger bis
+  zur Mitte (0,59 s); beim Auftauchen beginnt sein Fast-Surfacing-Drift 0,2 s
+  früher (1,8 s).
+- **CLAUDE.md neu als kompakter Code-Index:** Arbeitsweise (inkl. 95%-Regel),
+  Tech-Stack, Befehle, Invarianten und eine „Wo finde ich was?"-Tabelle —
+  gezieltes Nachschlagen statt freiem Durchsuchen.
+- **Neue Einstellung „Tauch-Animation ausschalten":** Unter *Einstellungen ›
+  Allgemein › Animationen* abschaltbar. Ist sie an, wird beim Öffnen/Verlassen
+  einer Kampagne **ohne Animation direkt umgeschaltet** (Store-seitig, das Overlay
+  wird gar nicht erst gemountet). Neuer Setting-Key `disableTransitionAnimation`
+  (Default aus), i18n `settings.animations` · `settings.disableTransition` ·
+  `settings.disableTransitionHint` in allen 5 Sprachen.
 - **Loop/Shuffle-Icons zeigen jetzt klar an/aus:** Symbol **matt-grau wenn aus**,
   **hell-cyan leuchtend (Glow) wenn an**. Vorher leuchtete Loop immer und Shuffle
   blieb immer grau — die neue Regel `.nowplaying .icon-btn.is-on` gilt für beide.
